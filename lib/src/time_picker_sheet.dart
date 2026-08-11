@@ -93,10 +93,12 @@ class _StudioTimePickerState extends State<_StudioTimePicker> {
     _hour = widget.initialTime.hour;
     _minute = _nearestMinute(widget.initialTime.minute);
 
-    _hourCtrl =
-        FixedExtentScrollController(initialItem: _hours.indexOf(_hourDisplay));
-    _minuteCtrl =
-        FixedExtentScrollController(initialItem: _minutes.indexOf(_minute));
+    _hourCtrl = FixedExtentScrollController(
+      initialItem: _hours.indexOf(_hourDisplay),
+    );
+    _minuteCtrl = FixedExtentScrollController(
+      initialItem: _minutes.indexOf(_minute),
+    );
   }
 
   @override
@@ -245,10 +247,7 @@ class _StudioTimePickerState extends State<_StudioTimePicker> {
               ],
             ),
           ),
-          if (!_use24) ...[
-            const SizedBox(width: 14),
-            _buildPeriodToggle(s),
-          ],
+          if (!_use24) ...[const SizedBox(width: 14), _buildPeriodToggle(s)],
         ],
       ),
     );
@@ -387,9 +386,9 @@ class _StudioTimePickerState extends State<_StudioTimePicker> {
         const SizedBox(width: 12),
         Expanded(
           child: FilledButton(
-            onPressed: () => Navigator.of(context).pop(
-              TimeOfDay(hour: _hour, minute: _minute),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(TimeOfDay(hour: _hour, minute: _minute)),
             style: FilledButton.styleFrom(
               backgroundColor: s.accentColor,
               foregroundColor: s.onAccentColor,

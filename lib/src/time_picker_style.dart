@@ -106,8 +106,7 @@ class TimePickerStyle {
 
     final accent = accentColor ?? scheme.primary;
     final resolvedText = textColor ?? scheme.onSurface;
-    final muted =
-        mutedColor ?? scheme.onSurfaceVariant.withValues(alpha: 0.9);
+    final muted = mutedColor ?? scheme.onSurfaceVariant.withValues(alpha: 0.9);
 
     return TimePickerStyle(
       accentColor: accent,
@@ -126,7 +125,8 @@ class TimePickerStyle {
             fontWeight: FontWeight.w700,
           ),
       valueStyle:
-          valueStyle ?? const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+          valueStyle ??
+          const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
     );
   }
 
