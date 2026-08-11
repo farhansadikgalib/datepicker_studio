@@ -167,7 +167,8 @@ class DateRangePickerTheme {
       // Time fields sit beside the action buttons, so they follow their shape.
       timeFieldRadius: timeFieldRadius ?? buttonRadius ?? 10,
       buttonPadding: buttonPadding ?? 13,
-      chipColor: chipColor ?? rangeColor ?? resolvedPrimary.withValues(alpha: 0.12),
+      chipColor:
+          chipColor ?? rangeColor ?? resolvedPrimary.withValues(alpha: 0.12),
       chipBorderColor:
           chipBorderColor ?? resolvedPrimary.withValues(alpha: 0.35),
       dayExtent: dayExtent ?? 40,

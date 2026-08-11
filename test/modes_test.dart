@@ -2,10 +2,8 @@ import 'package:datepicker_studio/datepicker_studio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Finder _dayCell(String number) => find.descendant(
-  of: find.byType(MonthGrid),
-  matching: find.text(number),
-);
+Finder _dayCell(String number) =>
+    find.descendant(of: find.byType(MonthGrid), matching: find.text(number));
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -125,11 +123,7 @@ void main() {
       final now = DateTime.now();
       // A birthday already passed this year, so the age is exact.
       final birth = DateTime(now.year - 30, 1, 1);
-      await _pump(
-        tester,
-        config: config,
-        range: PickedDateRange.single(birth),
-      );
+      await _pump(tester, config: config, range: PickedDateRange.single(birth));
 
       expect(find.text('Age 30'), findsOneWidget);
     });
@@ -300,10 +294,7 @@ void main() {
         () => DateRangePickerConfig(minuteInterval: 7),
         throwsA(isA<AssertionError>()),
       );
-      expect(
-        () => DateRangePickerConfig(minuteInterval: 15),
-        returnsNormally,
-      );
+      expect(() => DateRangePickerConfig(minuteInterval: 15), returnsNormally);
     });
   });
 
@@ -378,13 +369,11 @@ void main() {
     });
 
     test('withTimes attaches times to an untimed range', () {
-      final range = PickedDateRange(
-        DateTime(2026, 8, 4),
-        DateTime(2026, 8, 9),
-      ).withTimes(
-        startTime: const TimeOfDay(hour: 8, minute: 15),
-        endTime: const TimeOfDay(hour: 20, minute: 45),
-      );
+      final range = PickedDateRange(DateTime(2026, 8, 4), DateTime(2026, 8, 9))
+          .withTimes(
+            startTime: const TimeOfDay(hour: 8, minute: 15),
+            endTime: const TimeOfDay(hour: 20, minute: 45),
+          );
 
       expect(range.hasTime, isTrue);
       expect(range.start, DateTime(2026, 8, 4, 8, 15));
@@ -411,10 +400,7 @@ void main() {
         contains('09:00'),
       );
       expect(
-        PickedDateRange(
-          DateTime(2026, 8, 4),
-          DateTime(2026, 8, 9),
-        ).toString(),
+        PickedDateRange(DateTime(2026, 8, 4), DateTime(2026, 8, 9)).toString(),
         isNot(contains(':')),
       );
     });

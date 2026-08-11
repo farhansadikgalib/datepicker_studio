@@ -15,6 +15,7 @@ import 'theme.dart';
 /// ```
 Future<PickedDateRange?> showDateRangeSheet(
   BuildContext context, {
+
   /// Selection to open with.
   PickedDateRange? initialRange,
 
@@ -76,6 +77,7 @@ Future<PickedDateRange?> showDateRangeSheet(
 /// Resolves to the confirmed [PickedDateRange], or `null` if dismissed.
 Future<PickedDateRange?> showDateRangeDialog(
   BuildContext context, {
+
   /// Selection to open with.
   PickedDateRange? initialRange,
 

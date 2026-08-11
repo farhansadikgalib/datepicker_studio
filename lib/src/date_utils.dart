@@ -50,9 +50,11 @@ int inclusiveDayCount(DateTime start, DateTime end) {
 
 /// Adds [days] to [date] at day precision, immune to DST shifts.
 DateTime addDays(DateTime date, int days) {
-  final utc = DateTime.utc(date.year, date.month, date.day).add(
-    Duration(days: days),
-  );
+  final utc = DateTime.utc(
+    date.year,
+    date.month,
+    date.day,
+  ).add(Duration(days: days));
   return DateTime(utc.year, utc.month, utc.day);
 }
 

@@ -17,10 +17,8 @@ const _theme = DateRangePickerTheme(
   todayColor: Color(0xFFEE000A),
 );
 
-Finder _dayCell(String number) => find.descendant(
-  of: find.byType(MonthGrid),
-  matching: find.text(number),
-);
+Finder _dayCell(String number) =>
+    find.descendant(of: find.byType(MonthGrid), matching: find.text(number));
 
 /// Colour actually painted behind a day cell's pill.
 Color? _pillColor(WidgetTester tester, String day) {
@@ -35,8 +33,7 @@ Color? _pillColor(WidgetTester tester, String day) {
         ),
       )
       .first;
-  final decoration =
-      tester.widget<Container>(pill).decoration as BoxDecoration;
+  final decoration = tester.widget<Container>(pill).decoration as BoxDecoration;
   return decoration.color;
 }
 
@@ -130,10 +127,7 @@ void main() {
 
       final today = DateTime.now();
       final stack = find
-          .ancestor(
-            of: _dayCell('${today.day}'),
-            matching: find.byType(Stack),
-          )
+          .ancestor(of: _dayCell('${today.day}'), matching: find.byType(Stack))
           .first;
       final pill = find
           .descendant(
@@ -279,7 +273,8 @@ void main() {
                     DateRangePreset.lastDays(45),
                     DateRangePreset(
                       label: 'Since launch',
-                      build: (now) => PickedDateRange(DateTime(2024, 3, 5), now),
+                      build: (now) =>
+                          PickedDateRange(DateTime(2024, 3, 5), now),
                     ),
                   ],
                 ),

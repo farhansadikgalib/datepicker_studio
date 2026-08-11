@@ -164,10 +164,7 @@ void main() {
     });
 
     testWidgets('buttonRadius overrides both action buttons', (tester) async {
-      await _pump(
-        tester,
-        theme: const DateRangePickerTheme(buttonRadius: 28),
-      );
+      await _pump(tester, theme: const DateRangePickerTheme(buttonRadius: 28));
 
       expect(radiusOf(tester, find.byType(ElevatedButton)), 28);
       expect(radiusOf(tester, find.byType(OutlinedButton)), 28);
@@ -185,37 +182,23 @@ void main() {
 
     testWidgets('buttonPadding changes the button height', (tester) async {
       await _pump(tester);
-      final defaultHeight = tester
-          .getRect(find.byType(ElevatedButton))
-          .height;
+      final defaultHeight = tester.getRect(find.byType(ElevatedButton)).height;
 
-      await _pump(
-        tester,
-        theme: const DateRangePickerTheme(buttonPadding: 24),
-      );
+      await _pump(tester, theme: const DateRangePickerTheme(buttonPadding: 24));
       final tallHeight = tester.getRect(find.byType(ElevatedButton)).height;
 
       expect(tallHeight, greaterThan(defaultHeight));
     });
 
     testWidgets('chipRadius shapes the preset chips', (tester) async {
-      await _pump(
-        tester,
-        theme: const DateRangePickerTheme(chipRadius: 2),
-      );
+      await _pump(tester, theme: const DateRangePickerTheme(chipRadius: 2));
 
       final chip = tester.widget<Material>(
         find
-            .ancestor(
-              of: find.text('Today'),
-              matching: find.byType(Material),
-            )
+            .ancestor(of: find.text('Today'), matching: find.byType(Material))
             .first,
       );
-      expect(
-        (chip.borderRadius as BorderRadius).topLeft.x,
-        2,
-      );
+      expect((chip.borderRadius as BorderRadius).topLeft.x, 2);
     });
 
     testWidgets('chipColor and chipBorderColor are independent of the range', (
@@ -232,20 +215,14 @@ void main() {
 
       final chip = tester.widget<Material>(
         find
-            .ancestor(
-              of: find.text('Today'),
-              matching: find.byType(Material),
-            )
+            .ancestor(of: find.text('Today'), matching: find.byType(Material))
             .first,
       );
       expect(chip.color, const Color(0xFF222222));
 
       final container = tester.widget<Container>(
         find
-            .ancestor(
-              of: find.text('Today'),
-              matching: find.byType(Container),
-            )
+            .ancestor(of: find.text('Today'), matching: find.byType(Container))
             .first,
       );
       final border = (container.decoration as BoxDecoration).border as Border;
@@ -262,10 +239,7 @@ void main() {
 
       final chip = tester.widget<Material>(
         find
-            .ancestor(
-              of: find.text('Today'),
-              matching: find.byType(Material),
-            )
+            .ancestor(of: find.text('Today'), matching: find.byType(Material))
             .first,
       );
       expect(chip.color, const Color(0xFF444444));
@@ -297,10 +271,7 @@ void main() {
       await _pump(
         tester,
         config: const DateRangePickerConfig(mode: DateRangeMode.dateTime),
-        theme: const DateRangePickerTheme(
-          buttonRadius: 18,
-          timeFieldRadius: 3,
-        ),
+        theme: const DateRangePickerTheme(buttonRadius: 18, timeFieldRadius: 3),
       );
 
       final field = tester.widget<Container>(

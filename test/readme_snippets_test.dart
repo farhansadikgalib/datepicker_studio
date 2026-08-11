@@ -8,27 +8,38 @@ PickedDateRange? _range;
 
 void main() {
   test('README snippets compile', () {
-    // Configuration sample.
-    DateRangePickerConfig(
-      minDate: DateTime(2024),
-      maxDate: DateTime.now(),
-      maxRangeLength: 90,
-      selectableDayPredicate: (d) =>
-          d.weekday != DateTime.saturday && d.weekday != DateTime.sunday,
-    );
+    // "Show it your way"
+    DateRangePickerView(showActions: false, onChanged: (r) => _range = r);
+    DateRangeField(value: _range, onChanged: (r) => _range = r);
 
-    // Modes.
+    // "Pick something else"
+    const DateRangePickerConfig(mode: DateRangeMode.single);
     const DateRangePickerConfig(mode: DateRangeMode.birthday);
+    const DateRangePickerConfig(mode: DateRangeMode.dateTime);
     const DateRangePickerConfig(
       mode: DateRangeMode.dateTime,
       minuteInterval: 15,
-      use24HourFormat: true,
     );
 
-    // Presets.
+    // "Common recipes"
+    DateRangePickerConfig(
+      minDate: DateTime.now().subtract(const Duration(days: 365)),
+      maxDate: DateTime.now(),
+    );
+    DateRangePickerConfig(
+      selectableDayPredicate: (day) =>
+          day.weekday != DateTime.saturday && day.weekday != DateTime.sunday,
+    );
+    const DateRangePickerConfig(minRangeLength: 2, maxRangeLength: 30);
+    const DateRangePickerConfig(autoApply: true);
+    const DateRangePickerConfig(visibleMonths: 2);
+
+    // "Preset chips"
+    const DateRangePickerConfig(showLast7DaysPreset: false);
+    const DateRangePickerConfig(presets: []);
     DateRangePickerConfig(
       presets: [
-        DateRangePreset.lastDays(7),
+        DateRangePreset.lastDays(90),
         DateRangePreset(
           label: 'Q1',
           build: (now) =>
@@ -36,52 +47,72 @@ void main() {
         ),
       ],
     );
-    const DateRangePickerConfig(showLast7DaysPreset: false);
+    // Every preset named as "ready-made" must exist.
+    DateRangePreset.today();
+    DateRangePreset.yesterday();
+    DateRangePreset.thisWeek();
+    DateRangePreset.lastWeek();
+    DateRangePreset.thisMonth();
+    DateRangePreset.lastMonth();
+    DateRangePreset.thisYear();
+    DateRangePreset.lastDays(7);
+    DateRangePreset.nextDays(7);
 
-    // Theming.
-    DateRangePickerTheme.from(primary: const Color(0xFF0D9488));
+    // "Make it yours"
+    DateRangePickerTheme.from(primary: Colors.teal);
     const DateRangePickerTheme(
       primaryColor: Color(0xFF4F46E5),
       rangeColor: Color(0x1A4F46E5),
       todayColor: Color(0xFFFBBF24),
+      dayRadius: 10,
       buttonRadius: 26,
-      chipRadius: 4,
       dayExtent: 44,
     );
 
-    // Localisation.
+    // "Localisation"
     DateRangePickerConfig(
-      locale: 'de',
+      locale: 'en',
       labels: DateRangePickerLabels(
-        from: 'Von',
-        to: 'Bis',
-        apply: 'Übernehmen',
-        daysSelected: (d) => '$d Tage ausgewählt',
+        from: 'From',
+        to: 'To',
+        apply: 'Apply',
+        cancel: 'Cancel',
+        daysSelected: (d) => d == 1 ? '1 day selected' : '$d days selected',
       ),
     );
 
-    // PickedDateRange surface.
-    final range = PickedDateRange(DateTime(2026, 8, 1), DateTime(2026, 8, 9));
+    // The README presents those as the defaults — keep that honest.
+    const defaults = DateRangePickerLabels();
+    expect(defaults.from, 'From');
+    expect(defaults.to, 'To');
+    expect(defaults.apply, 'Apply');
+    expect(defaults.cancel, 'Cancel');
+    expect(defaults.daysSelected(1), '1 day selected');
+    expect(defaults.daysSelected(8), '8 days selected');
+
+    // "What you get back"
+    final range = PickedDateRange(DateTime(2026, 8, 5), DateTime(2026, 8, 12));
     range.start;
     range.end;
     range.days;
     range.duration;
+    range.contains(DateTime(2026, 8, 6));
+    range.toList();
+    range.toDateTimeRange();
     range.hasTime;
     range.startTime;
     range.endTime;
     range.ageInYears();
     range.isSingleDay;
-    range.contains(DateTime(2026, 8, 5));
-    range.toList();
-    range.toDateTimeRange();
 
-    // Widget entry points.
-    DateRangePickerView(
-      showActions: false,
-      onChanged: (r) => _range = r,
+    // The README quotes these two results — keep them honest.
+    expect(range.days, 8);
+    expect(
+      PickedDateRange.withTime(
+        DateTime(2026, 8, 5, 9, 30),
+        DateTime(2026, 8, 5, 17, 45),
+      ).duration,
+      const Duration(hours: 8, minutes: 15),
     );
-    DateRangeField(value: _range, onChanged: (r) => _range = r);
-
-    expect(true, isTrue);
   });
 }

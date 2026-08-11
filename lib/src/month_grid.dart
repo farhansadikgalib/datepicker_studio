@@ -248,7 +248,7 @@ class _DayCell extends StatelessWidget {
                           ),
                         ),
                       ),
-                // The rounded pill itself.
+                    // The rounded pill itself.
                     // The endpoint pill, and the day number itself. In-range
                     // cells draw no box of their own — the band behind them
                     // already supplies the fill.
@@ -257,9 +257,7 @@ class _DayCell extends StatelessWidget {
                       height: height,
                       margin: const EdgeInsets.symmetric(vertical: 2),
                       decoration: BoxDecoration(
-                        color: isEdge
-                            ? theme.primaryColor
-                            : Colors.transparent,
+                        color: isEdge ? theme.primaryColor : Colors.transparent,
                         borderRadius: BorderRadius.all(radius),
                         border: isToday && !isEdge
                             ? Border.all(color: theme.todayColor!, width: 1.4)

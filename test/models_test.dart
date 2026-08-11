@@ -58,10 +58,7 @@ void main() {
 
     test('round-trips through DateTimeRange', () {
       final range = PickedDateRange(DateTime(2026, 5, 1), DateTime(2026, 5, 9));
-      expect(
-        PickedDateRange.fromDateTimeRange(range.toDateTimeRange()),
-        range,
-      );
+      expect(PickedDateRange.fromDateTimeRange(range.toDateTimeRange()), range);
     });
 
     test('equality ignores time of day', () {
@@ -98,15 +95,15 @@ void main() {
 
     test('thisWeek honours the first day of week', () {
       expect(
-        DateRangePreset.thisWeek(firstDayOfWeek: DateTime.monday)
-            .build(now)
-            .start,
+        DateRangePreset.thisWeek(
+          firstDayOfWeek: DateTime.monday,
+        ).build(now).start,
         DateTime(2026, 8, 10),
       );
       expect(
-        DateRangePreset.thisWeek(firstDayOfWeek: DateTime.sunday)
-            .build(now)
-            .start,
+        DateRangePreset.thisWeek(
+          firstDayOfWeek: DateTime.sunday,
+        ).build(now).start,
         DateTime(2026, 8, 9),
       );
     });

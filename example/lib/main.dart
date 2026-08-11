@@ -128,10 +128,14 @@ class _DemoPageState extends State<DemoPage> {
             subtitle: 'Year → month → day, shows age.',
             value: _birthday,
             onPressed: () async {
-              final range = await showDateRangeSheet(context,
-                  initialRange: _birthday,
-                  config: const DateRangePickerConfig(
-                      mode: DateRangeMode.birthday, presets: []));
+              final range = await showDateRangeSheet(
+                context,
+                initialRange: _birthday,
+                config: const DateRangePickerConfig(
+                  mode: DateRangeMode.birthday,
+                  presets: [],
+                ),
+              );
               if (range != null) setState(() => _birthday = range);
             },
           ),
@@ -140,12 +144,15 @@ class _DemoPageState extends State<DemoPage> {
             subtitle: 'Range with a time on each endpoint.',
             value: _shift,
             onPressed: () async {
-              final range = await showDateRangeSheet(context,
-                  initialRange: _shift,
-                  config: const DateRangePickerConfig(
-                      mode: DateRangeMode.dateTime,
-                      minuteInterval: 15,
-                      presets: []));
+              final range = await showDateRangeSheet(
+                context,
+                initialRange: _shift,
+                config: const DateRangePickerConfig(
+                  mode: DateRangeMode.dateTime,
+                  minuteInterval: 15,
+                  presets: [],
+                ),
+              );
               if (range != null) setState(() => _shift = range);
             },
           ),
@@ -167,7 +174,9 @@ class _DemoPageState extends State<DemoPage> {
             child: DateRangePickerView(
               initialRange: _inlineRange,
               showActions: false,
-              theme: DateRangePickerTheme.from(primary: const Color(0xFF0D9488)),
+              theme: DateRangePickerTheme.from(
+                primary: const Color(0xFF0D9488),
+              ),
               config: const DateRangePickerConfig(
                 firstDayOfWeek: DateTime.sunday,
                 showClearButton: true,

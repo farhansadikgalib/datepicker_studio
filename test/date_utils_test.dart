@@ -13,8 +13,10 @@ void main() {
 
   group('isSameDay', () {
     test('ignores time of day', () {
-      expect(isSameDay(DateTime(2026, 3, 14, 9), DateTime(2026, 3, 14, 21)),
-          isTrue);
+      expect(
+        isSameDay(DateTime(2026, 3, 14, 9), DateTime(2026, 3, 14, 21)),
+        isTrue,
+      );
     });
 
     test('is false across a day boundary', () {

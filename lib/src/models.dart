@@ -75,9 +75,8 @@ class PickedDateRange {
 
   /// Returns a copy carrying the given times of day on each endpoint.
   PickedDateRange withTimes({TimeOfDay? startTime, TimeOfDay? endTime}) {
-    DateTime apply(DateTime d, TimeOfDay? t) => t == null
-        ? d
-        : DateTime(d.year, d.month, d.day, t.hour, t.minute);
+    DateTime apply(DateTime d, TimeOfDay? t) =>
+        t == null ? d : DateTime(d.year, d.month, d.day, t.hour, t.minute);
     return PickedDateRange.withTime(
       apply(start, startTime),
       apply(end, endTime),
@@ -112,8 +111,7 @@ class PickedDateRange {
     if (other.hasTime != hasTime) return false;
     // A timed range compares to the minute; a plain one ignores time entirely.
     return hasTime
-        ? other.start.isAtSameMomentAs(start) &&
-              other.end.isAtSameMomentAs(end)
+        ? other.start.isAtSameMomentAs(start) && other.end.isAtSameMomentAs(end)
         : isSameDay(other.start, start) && isSameDay(other.end, end);
   }
 
@@ -126,7 +124,9 @@ class PickedDateRange {
   String toString() {
     String fmt(DateTime d) {
       final iso = d.toIso8601String();
-      return hasTime ? iso.substring(0, 16).replaceFirst('T', ' ') : iso.split('T').first;
+      return hasTime
+          ? iso.substring(0, 16).replaceFirst('T', ' ')
+          : iso.split('T').first;
     }
 
     return 'PickedDateRange(${fmt(start)} → ${fmt(end)})';
@@ -220,7 +220,11 @@ class DateRangePreset {
           final start = DateTime(now.year, now.month - 1, 1);
           return PickedDateRange(
             start,
-            DateTime(start.year, start.month, daysInMonth(start.year, start.month)),
+            DateTime(
+              start.year,
+              start.month,
+              daysInMonth(start.year, start.month),
+            ),
           );
         },
       );
@@ -502,7 +506,9 @@ class DateRangePickerConfig {
          'firstDayOfWeek must be a DateTime weekday constant (1-7)',
        ),
        assert(
-         minuteInterval >= 1 && minuteInterval <= 60 && 60 % minuteInterval == 0,
+         minuteInterval >= 1 &&
+             minuteInterval <= 60 &&
+             60 % minuteInterval == 0,
          'minuteInterval must divide 60 evenly',
        ),
        assert(visibleMonths >= 1, 'visibleMonths must be at least 1'),

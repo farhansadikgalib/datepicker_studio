@@ -36,10 +36,8 @@ Future<void> pumpPicker(
 
 /// Finds a day cell by its number, ignoring identically-numbered text
 /// elsewhere in the tree such as the year grid.
-Finder dayCell(String number) => find.descendant(
-  of: find.byType(MonthGrid),
-  matching: find.text(number),
-);
+Finder dayCell(String number) =>
+    find.descendant(of: find.byType(MonthGrid), matching: find.text(number));
 
 void main() {
   group('selection', () {
@@ -591,7 +589,10 @@ void main() {
 
       final headers = tester
           .widgetList<Text>(
-            find.descendant(of: find.byType(MonthGrid), matching: find.byType(Text)),
+            find.descendant(
+              of: find.byType(MonthGrid),
+              matching: find.byType(Text),
+            ),
           )
           .map((t) => t.data)
           .take(7)

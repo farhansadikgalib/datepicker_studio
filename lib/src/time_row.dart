@@ -160,11 +160,7 @@ class _TimeField extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.schedule_rounded,
-              size: 18,
-              color: theme.mutedTextColor,
-            ),
+            Icon(Icons.schedule_rounded, size: 18, color: theme.mutedTextColor),
           ],
         ),
       ),
