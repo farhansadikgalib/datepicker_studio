@@ -1,0 +1,27 @@
+name: datepicker_studio
+description: A themeable date picker toolkit for Flutter — range, single, birthday, and date-time modes across a bottom sheet, dialog, inline calendar, and form field.
+version: 1.0.0
+homepage: https://farhansadikgalib.com
+repository: https://github.com/farhansadikgalib/datepicker_studio
+issue_tracker: https://github.com/farhansadikgalib/datepicker_studio/issues
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  intl: ">=0.19.0 <0.21.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+topics:
+  - date
+  - date-picker
+  - calendar
+  - date-range
+  - picker
