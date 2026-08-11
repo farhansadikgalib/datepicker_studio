@@ -43,6 +43,7 @@ class _DemoPageState extends State<DemoPage> {
   PickedDateRange? _inlineRange;
   PickedDateRange? _birthday;
   PickedDateRange? _shift;
+  TimeOfDay? _time;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +57,7 @@ class _DemoPageState extends State<DemoPage> {
             subtitle: 'Defaults: presets, day count, year picker.',
             value: _sheetRange,
             onPressed: () async {
-              final range = await showDateRangeSheet(
+              final range = await DateRangePickerSheet(
                 context,
                 initialRange: _sheetRange,
               );
@@ -83,7 +84,7 @@ class _DemoPageState extends State<DemoPage> {
             value: _boundedRange,
             onPressed: () async {
               final now = DateTime.now();
-              final range = await showDateRangeSheet(
+              final range = await DateRangePickerSheet(
                 context,
                 initialRange: _boundedRange,
                 config: DateRangePickerConfig(
@@ -110,7 +111,7 @@ class _DemoPageState extends State<DemoPage> {
             subtitle: 'Closes on the first tap.',
             value: _singleDate,
             onPressed: () async {
-              final range = await showDateRangeSheet(
+              final range = await DateRangePickerSheet(
                 context,
                 initialRange: _singleDate,
                 config: const DateRangePickerConfig(
@@ -128,7 +129,7 @@ class _DemoPageState extends State<DemoPage> {
             subtitle: 'Year → month → day, shows age.',
             value: _birthday,
             onPressed: () async {
-              final range = await showDateRangeSheet(
+              final range = await DateRangePickerSheet(
                 context,
                 initialRange: _birthday,
                 config: const DateRangePickerConfig(
@@ -144,7 +145,7 @@ class _DemoPageState extends State<DemoPage> {
             subtitle: 'Range with a time on each endpoint.',
             value: _shift,
             onPressed: () async {
-              final range = await showDateRangeSheet(
+              final range = await DateRangePickerSheet(
                 context,
                 initialRange: _shift,
                 config: const DateRangePickerConfig(
@@ -154,6 +155,22 @@ class _DemoPageState extends State<DemoPage> {
                 ),
               );
               if (range != null) setState(() => _shift = range);
+            },
+          ),
+          _Demo(
+            title: 'Single time',
+            subtitle: _time == null
+                ? 'Standalone custom time picker, 5-min steps.'
+                : 'Selected: ${_time!.format(context)}',
+            value: null,
+            onPressed: () async {
+              final time = await showStudioTimePicker(
+                context,
+                initialTime: _time ?? const TimeOfDay(hour: 9, minute: 0),
+                style: TimePickerStyle.from(accent: const Color(0xFF4F46E5)),
+                minuteInterval: 5,
+              );
+              if (time != null) setState(() => _time = time);
             },
           ),
           const SizedBox(height: 8),

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="datepicker_studio logo" width="160" height="160">
+</p>
+
 <h1 align="center">datepicker_studio</h1>
 
 <p align="center">
@@ -24,13 +28,13 @@
 
 ```yaml
 dependencies:
-  datepicker_studio: ^1.0.0
+  datepicker_studio: ^2.0.0
 ```
 
 ```dart
 import 'package:datepicker_studio/datepicker_studio.dart';
 
-final range = await showDateRangeSheet(context);   // null if cancelled
+final range = await DateRangePickerSheet(context);   // null if cancelled
 
 print('${range?.start} → ${range?.end}');   // 2026-08-05 → 2026-08-12
 print('${range?.days} days');               // 8 days
@@ -44,6 +48,17 @@ Three other ways to show it:
 showDateRangeDialog(context);                                    // tablet, desktop, web
 DateRangePickerView(showActions: false, onChanged: (r) => ...)   // inline
 DateRangeField(value: _range, onChanged: (r) => ...)             // form field
+```
+
+Need just a time? The same custom wheel picker is available on its own:
+
+```dart
+final time = await showStudioTimePicker(
+  context,
+  initialTime: TimeOfDay.now(),
+  style: TimePickerStyle.from(accent: Colors.indigo),   // colours are yours
+  minuteInterval: 5,
+);
 ```
 
 ## Modes

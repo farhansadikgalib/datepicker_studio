@@ -1,8 +1,32 @@
+## 2.0.0
+
+**Breaking** — `showDateRangeSheet` is renamed to `DateRangePickerSheet`. Update
+call sites; the signature is otherwise unchanged.
+
+**Custom time picker** — the `dateTime` mode now opens the package's own
+wheel-based time picker (`showStudioTimePicker`) instead of the platform dialog,
+also exported as a standalone single time picker. Hour and minute wheels share
+one continuous selection band with a compact AM/PM toggle beside them; the
+minute wheel honours `minuteInterval`. Wheel ticks and the AM/PM toggle give
+haptic feedback, and tapping any off-centre value scrolls it into the selection.
+
+**Fully themeable time picker** — a new `TimePickerStyle` customises every colour
+(accent, band, text, surface, borders), the corner radius, wheel row height, and
+text styles. Build one from a single colour with `TimePickerStyle.from(accent:)`,
+match a calendar with `TimePickerStyle.fromTheme(...)`, or leave it unset to
+resolve from the ambient `ThemeData`.
+
+**Nicer sheet** — the bottom sheet gains a soft lifted shadow, a refined drag
+handle, a rounder lip, and keyboard-aware padding.
+
+**Refined copy** — the `birthday` age summary now reads "40 years old" (singular
+"1 year old") instead of "Age 40". Override it via `DateRangePickerLabels.age`.
+
 ## 1.0.0
 
 Initial release.
 
-**Entry points** — four presentations over one calendar engine: `showDateRangeSheet`
+**Entry points** — four presentations over one calendar engine: `DateRangePickerSheet`
 (modal bottom sheet), `showDateRangeDialog` (centred dialog), `DateRangePickerView`
 (inline), and `DateRangeField` (a tappable form field).
 

@@ -15,7 +15,7 @@ enum _PickerStep { years, months, days }
 /// The calendar itself, without any surrounding sheet or dialog.
 ///
 /// Embed this to place the picker inline in a page, a sidebar, or your own
-/// container. For the standard modal presentations use `showDateRangeSheet`
+/// container. For the standard modal presentations use `DateRangePickerSheet`
 /// or `showDateRangeDialog`, which wrap this widget.
 ///
 /// ```dart

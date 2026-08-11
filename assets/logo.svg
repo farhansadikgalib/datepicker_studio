@@ -1,0 +1,89 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="datepicker_studio logo">
+  <defs>
+    <linearGradient id="tile" x1="64" y1="24" x2="448" y2="488" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C7DF5"/>
+      <stop offset="0.55" stop-color="#5B57E8"/>
+      <stop offset="1" stop-color="#3B31B8"/>
+    </linearGradient>
+    <linearGradient id="tileGloss" x1="256" y1="0" x2="256" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="card" x1="256" y1="128" x2="256" y2="416" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#EEF0FB"/>
+    </linearGradient>
+    <linearGradient id="header" x1="112" y1="128" x2="400" y2="196" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#3730A3"/>
+    </linearGradient>
+    <linearGradient id="rangeBar" x1="136" y1="0" x2="376" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#818CF8" stop-opacity="0.18"/>
+    </linearGradient>
+    <linearGradient id="pill" x1="0" y1="300" x2="0" y2="352" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.32" r="0.7">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="cardShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#241E6E" flood-opacity="0.40"/>
+    </filter>
+    <filter id="dotShadow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#4338CA" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- App tile -->
+  <rect x="0" y="0" width="512" height="512" rx="120" fill="url(#tile)"/>
+  <rect x="0" y="0" width="512" height="512" rx="120" fill="url(#glow)"/>
+  <path d="M120 0 h272 a120 120 0 0 1 120 120 v40 c-140 -60 -372 -60 -512 0 v-40 a120 120 0 0 1 120 -120 z" fill="url(#tileGloss)"/>
+  <rect x="3" y="3" width="506" height="506" rx="117" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="2"/>
+
+  <!-- Binding rings -->
+  <rect x="180" y="92" width="22" height="58" rx="11" fill="#312E81"/>
+  <rect x="310" y="92" width="22" height="58" rx="11" fill="#312E81"/>
+  <rect x="180" y="92" width="22" height="26" rx="11" fill="#4F46E5"/>
+  <rect x="310" y="92" width="22" height="26" rx="11" fill="#4F46E5"/>
+
+  <!-- Calendar card -->
+  <g filter="url(#cardShadow)">
+    <rect x="104" y="128" width="304" height="288" rx="44" fill="url(#card)"/>
+  </g>
+  <rect x="104" y="128" width="304" height="288" rx="44" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.5"/>
+
+  <!-- Header strip -->
+  <path d="M104 172 a44 44 0 0 1 44 -44 h216 a44 44 0 0 1 44 44 v22 h-304 z" fill="url(#header)"/>
+
+  <!-- Day grid -->
+  <g>
+    <!-- row 1 -->
+    <circle cx="156" cy="248" r="12" fill="#DDE1F5"/>
+    <circle cx="223" cy="248" r="12" fill="#DDE1F5"/>
+    <circle cx="289" cy="248" r="12" fill="#DDE1F5"/>
+    <circle cx="356" cy="248" r="12" fill="#DDE1F5"/>
+
+    <!-- row 2 : selected range -->
+    <rect x="132" y="302" width="248" height="52" rx="26" fill="url(#rangeBar)"/>
+    <!-- start endpoint -->
+    <g filter="url(#dotShadow)">
+      <circle cx="156" cy="328" r="24" fill="url(#pill)"/>
+    </g>
+    <!-- middle days -->
+    <circle cx="223" cy="328" r="12" fill="#8B90F0"/>
+    <circle cx="289" cy="328" r="12" fill="#8B90F0"/>
+    <!-- end endpoint -->
+    <g filter="url(#dotShadow)">
+      <circle cx="356" cy="328" r="24" fill="url(#pill)"/>
+    </g>
+
+    <!-- row 3 -->
+    <circle cx="156" cy="384" r="12" fill="#DDE1F5"/>
+    <circle cx="223" cy="384" r="12" fill="#DDE1F5"/>
+    <circle cx="289" cy="384" r="12" fill="#DDE1F5"/>
+    <circle cx="356" cy="384" r="12" fill="#DDE1F5"/>
+  </g>
+</svg>

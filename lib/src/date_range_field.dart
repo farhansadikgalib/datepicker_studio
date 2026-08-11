@@ -92,7 +92,7 @@ class DateRangeField extends StatelessWidget {
     // The future is built before any await, so `context` is never used across
     // an async gap here.
     final future = switch (presentation) {
-      DateRangePickerPresentation.sheet => showDateRangeSheet(
+      DateRangePickerPresentation.sheet => DateRangePickerSheet(
         context,
         initialRange: value,
         config: config,

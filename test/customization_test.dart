@@ -158,7 +158,7 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
-                onPressed: () => showDateRangeSheet(context, theme: _theme),
+                onPressed: () => DateRangePickerSheet(context, theme: _theme),
                 child: const Text('open'),
               ),
             ),

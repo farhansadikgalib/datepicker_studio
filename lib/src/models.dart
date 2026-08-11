@@ -307,8 +307,8 @@ class DateRangePickerLabels {
   /// Caption above the end endpoint's time.
   final String endTime;
 
-  /// Builds the "Age 40" summary shown in [DateRangeMode.birthday]. Return an
-  /// empty string to hide it.
+  /// Builds the "40 years old" summary shown in [DateRangeMode.birthday].
+  /// Return an empty string to hide it.
   final String Function(int years) age;
 
   /// Builds the "5 days selected" summary. Return an empty string to hide it.
@@ -337,7 +337,8 @@ class DateRangePickerLabels {
     this.rangeTooShort = _defaultTooShort,
   });
 
-  static String _defaultAge(int years) => 'Age $years';
+  static String _defaultAge(int years) =>
+      years == 1 ? '1 year old' : '$years years old';
 
   static String _defaultDaysSelected(int days) =>
       days == 1 ? '1 day selected' : '$days days selected';

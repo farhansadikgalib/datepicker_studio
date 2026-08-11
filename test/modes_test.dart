@@ -125,7 +125,7 @@ void main() {
       final birth = DateTime(now.year - 30, 1, 1);
       await _pump(tester, config: config, range: PickedDateRange.single(birth));
 
-      expect(find.text('Age 30'), findsOneWidget);
+      expect(find.text('30 years old'), findsOneWidget);
     });
 
     testWidgets('an existing selection skips straight to the calendar', (
@@ -203,6 +203,22 @@ void main() {
       expect(find.byType(TimeRow), findsOneWidget);
       expect(find.text('Start time'), findsOneWidget);
       expect(find.text('End time'), findsOneWidget);
+    });
+
+    testWidgets('a time field opens the package time picker', (tester) async {
+      await _pump(tester, config: config);
+
+      await tester.tap(find.text('Start time'));
+      await tester.pumpAndSettle();
+
+      // The package's own picker, not the platform dialog.
+      expect(find.text('Select time'), findsOneWidget);
+      expect(find.text('AM'), findsWidgets);
+      expect(find.text('PM'), findsWidgets);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(find.text('Select time'), findsNothing);
     });
 
     testWidgets('attaches the default times to the picked range', (

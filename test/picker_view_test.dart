@@ -662,7 +662,7 @@ void main() {
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () async {
-                  result = await showDateRangeSheet(
+                  result = await DateRangePickerSheet(
                     context,
                     initialMonth: DateTime(2026, 8),
                   );
@@ -698,7 +698,7 @@ void main() {
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () async {
-                  result = await showDateRangeSheet(
+                  result = await DateRangePickerSheet(
                     context,
                     initialMonth: DateTime(2026, 8),
                   );

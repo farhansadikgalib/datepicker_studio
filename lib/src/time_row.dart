@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'theme.dart';
+import 'time_picker_sheet.dart';
+import 'time_picker_style.dart';
 
 /// The start/end time fields shown below the calendar in
 /// [DateRangeMode.dateTime].
 ///
-/// Each field opens the platform time picker, snapping the result to
+/// Each field opens the package's custom time picker, snapping the result to
 /// [minuteInterval].
 class TimeRow extends StatelessWidget {
   final TimeOfDay startTime;
@@ -51,17 +53,12 @@ class TimeRow extends StatelessWidget {
     TimeOfDay current,
     ValueChanged<TimeOfDay> onChanged,
   ) async {
-    final picked = await showTimePicker(
-      context: context,
+    final picked = await showStudioTimePicker(
+      context,
       initialTime: current,
-      builder: use24HourFormat == null
-          ? null
-          : (context, child) => MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(alwaysUse24HourFormat: use24HourFormat),
-              child: child!,
-            ),
+      style: TimePickerStyle.fromTheme(theme),
+      minuteInterval: minuteInterval,
+      use24HourFormat: use24HourFormat,
     );
     if (picked != null) onChanged(_snap(picked));
   }

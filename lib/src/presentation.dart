@@ -10,10 +10,11 @@ import 'theme.dart';
 /// or dismisses the sheet by dragging it away.
 ///
 /// ```dart
-/// final range = await showDateRangeSheet(context);
+/// final range = await DateRangePickerSheet(context);
 /// if (range != null) print('${range.start} → ${range.end} (${range.days}d)');
 /// ```
-Future<PickedDateRange?> showDateRangeSheet(
+// ignore: non_constant_identifier_names
+Future<PickedDateRange?> DateRangePickerSheet(
   BuildContext context, {
 
   /// Selection to open with.
@@ -150,34 +151,47 @@ class _SheetSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolved = (theme ?? const DateRangePickerTheme()).resolve(context);
+    // A slightly larger top radius than the surface default reads as a more
+    // deliberate, modern sheet lip.
+    final topRadius = Radius.circular((resolved.surfaceRadius ?? 20) + 4);
+    // Grow with the keyboard so a focused field is never covered.
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Container(
       decoration: BoxDecoration(
         color: resolved.backgroundColor,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(resolved.surfaceRadius!),
-        ),
+        borderRadius: BorderRadius.vertical(top: topRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (showDragHandle)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: resolved.borderColor,
-                      borderRadius: BorderRadius.circular(2),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: keyboardInset),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showDragHandle)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 2),
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: resolved.mutedTextColor?.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
                     ),
                   ),
-                ),
-              child,
-            ],
+                child,
+              ],
+            ),
           ),
         ),
       ),
