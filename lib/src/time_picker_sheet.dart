@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names — pickers use the
+// DateRangePicker* PascalCase family by design.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
@@ -14,7 +16,7 @@ import 'time_picker_style.dart';
 /// [minuteInterval].
 ///
 /// When [use24HourFormat] is null the ambient locale's convention is used.
-Future<TimeOfDay?> showStudioTimePicker(
+Future<TimeOfDay?> DateRangePickerTime(
   BuildContext context, {
   required TimeOfDay initialTime,
   TimePickerStyle? style,

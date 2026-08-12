@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names — pickers use the
+// DateRangePicker* PascalCase family by design.
 import 'package:flutter/material.dart';
 
 import 'date_range_picker_view.dart';
@@ -13,7 +15,6 @@ import 'theme.dart';
 /// final range = await DateRangePickerSheet(context);
 /// if (range != null) print('${range.start} → ${range.end} (${range.days}d)');
 /// ```
-// ignore: non_constant_identifier_names
 Future<PickedDateRange?> DateRangePickerSheet(
   BuildContext context, {
 
@@ -72,11 +73,83 @@ Future<PickedDateRange?> DateRangePickerSheet(
   );
 }
 
+/// Shows a multi-date picker in a bottom sheet, resolving to the chosen
+/// [PickedDates], or `null` if cancelled.
+///
+/// Each tap toggles a day; [onChanged] fires on every toggle.
+Future<PickedDates?> DateRangePickerMultiple(
+  BuildContext context, {
+  PickedDates? initialDates,
+  DateTime? initialMonth,
+  DateRangePickerConfig config = const DateRangePickerConfig(),
+  DateRangePickerTheme? theme,
+  ValueChanged<PickedDates>? onChanged,
+  bool isDismissible = true,
+  bool enableDrag = true,
+  bool showDragHandle = true,
+  RouteSettings? routeSettings,
+}) {
+  return showModalBottomSheet<PickedDates>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    isDismissible: isDismissible,
+    enableDrag: enableDrag,
+    routeSettings: routeSettings,
+    builder: (sheetContext) => _SheetSurface(
+      theme: theme,
+      showDragHandle: showDragHandle,
+      child: DateRangePickerView(
+        initialDates: initialDates,
+        initialMonth: initialMonth,
+        config: config.copyWith(mode: DateRangeMode.multiple),
+        theme: theme,
+        onDatesChanged: onChanged,
+        onDatesApply: (dates) => Navigator.of(sheetContext).pop(dates),
+        onCancel: () => Navigator.of(sheetContext).pop(),
+      ),
+    ),
+  );
+}
+
+/// Shows the picker in whichever surface suits the screen: a bottom sheet on
+/// narrow layouts, a centred dialog once the width reaches [breakpoint].
+///
+/// A one-call way to feel native on phone, tablet, desktop, and web.
+Future<PickedDateRange?> DateRangePickerAdaptive(
+  BuildContext context, {
+  PickedDateRange? initialRange,
+  DateTime? initialMonth,
+  DateRangePickerConfig config = const DateRangePickerConfig(),
+  DateRangePickerTheme? theme,
+  ValueChanged<PickedDateRange?>? onChanged,
+  double breakpoint = 600,
+}) {
+  final wide = MediaQuery.sizeOf(context).width >= breakpoint;
+  return wide
+      ? DateRangePickerPopup(
+          context,
+          initialRange: initialRange,
+          initialMonth: initialMonth,
+          config: config,
+          theme: theme,
+          onChanged: onChanged,
+        )
+      : DateRangePickerSheet(
+          context,
+          initialRange: initialRange,
+          initialMonth: initialMonth,
+          config: config,
+          theme: theme,
+          onChanged: onChanged,
+        );
+}
+
 /// Shows the picker in a centred dialog — the better fit for tablet, desktop,
 /// and web, especially with [DateRangePickerConfig.visibleMonths] above 1.
 ///
 /// Resolves to the confirmed [PickedDateRange], or `null` if dismissed.
-Future<PickedDateRange?> showDateRangeDialog(
+Future<PickedDateRange?> DateRangePickerPopup(
   BuildContext context, {
 
   /// Selection to open with.

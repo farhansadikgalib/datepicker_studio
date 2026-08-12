@@ -2,7 +2,7 @@ import 'package:datepicker_studio/datepicker_studio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Pumps a button that opens [showStudioTimePicker], appending whatever the
+/// Pumps a button that opens [DateRangePickerTime], appending whatever the
 /// picker resolves to onto [holder] once it closes.
 Future<void> _pumpOpener(
   WidgetTester tester,
@@ -20,7 +20,7 @@ Future<void> _pumpOpener(
             child: ElevatedButton(
               onPressed: () async {
                 holder.add(
-                  await showStudioTimePicker(
+                  await DateRangePickerTime(
                     context,
                     initialTime: initial,
                     style: style,
@@ -41,7 +41,7 @@ Future<void> _pumpOpener(
 }
 
 void main() {
-  group('showStudioTimePicker', () {
+  group('DateRangePickerTime', () {
     testWidgets('returns the initial time when confirmed untouched', (
       tester,
     ) async {

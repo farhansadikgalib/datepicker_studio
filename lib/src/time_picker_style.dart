@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'theme.dart';
 
-/// Visual configuration for [showStudioTimePicker].
+/// Visual configuration for [DateRangePickerTime].
 ///
 /// Every field is nullable: anything left `null` is resolved from the ambient
 /// [ThemeData] at build time, so the picker looks at home without any setup.
@@ -10,7 +10,7 @@ import 'theme.dart';
 /// [TimePickerStyle.fromTheme] to match a calendar's [DateRangePickerTheme].
 ///
 /// ```dart
-/// showStudioTimePicker(
+/// DateRangePickerTime(
 ///   context,
 ///   initialTime: TimeOfDay.now(),
 ///   style: TimePickerStyle.from(accent: Colors.teal),
@@ -98,6 +98,18 @@ class TimePickerStyle {
       borderRadius: theme.surfaceRadius,
     );
   }
+
+  /// A flat, low-chrome preset with a modest corner radius.
+  factory TimePickerStyle.minimal({Color? accent}) =>
+      TimePickerStyle(accentColor: accent, borderRadius: 12, itemExtent: 44);
+
+  /// A soft preset with a large corner radius and roomier wheels.
+  factory TimePickerStyle.rounded({Color? accent}) =>
+      TimePickerStyle(accentColor: accent, borderRadius: 28, itemExtent: 50);
+
+  /// A dense preset with tighter wheel rows.
+  factory TimePickerStyle.compact({Color? accent}) =>
+      TimePickerStyle(accentColor: accent, borderRadius: 14, itemExtent: 40);
 
   /// Fills every unset field from [context]'s [ColorScheme] and [TextTheme].
   TimePickerStyle resolve(BuildContext context) {

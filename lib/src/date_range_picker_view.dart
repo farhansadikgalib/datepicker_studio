@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'date_range_controller.dart';
 import 'date_utils.dart';
 import 'models.dart';
 import 'month_grid.dart';
@@ -16,7 +17,7 @@ enum _PickerStep { years, months, days }
 ///
 /// Embed this to place the picker inline in a page, a sidebar, or your own
 /// container. For the standard modal presentations use `DateRangePickerSheet`
-/// or `showDateRangeDialog`, which wrap this widget.
+/// or `DateRangePickerPopup`, which wrap this widget.
 ///
 /// ```dart
 /// DateRangePickerView(
@@ -40,6 +41,9 @@ class DateRangePickerView extends StatefulWidget {
   /// Visual options. Unset fields resolve from the ambient [ThemeData].
   final DateRangePickerTheme? theme;
 
+  /// Optional controller for reading and driving the selection imperatively.
+  final DateRangePickerController? controller;
+
   /// Fires on every selection change, including partial ones — the range is
   /// null while only the first endpoint has been chosen.
   final ValueChanged<PickedDateRange?>? onChanged;
@@ -51,6 +55,24 @@ class DateRangePickerView extends StatefulWidget {
   /// Fires when the user dismisses without confirming.
   final VoidCallback? onCancel;
 
+  /// Selection to open with in [DateRangeMode.multiple].
+  final PickedDates? initialDates;
+
+  /// Fires on every toggle in [DateRangeMode.multiple].
+  final ValueChanged<PickedDates>? onDatesChanged;
+
+  /// Fires when the user confirms in [DateRangeMode.multiple].
+  final ValueChanged<PickedDates>? onDatesApply;
+
+  /// Fires when the focused month changes — by swiping, the nav arrows, the
+  /// year/month grids, or [DateRangePickerController.goToMonth].
+  final ValueChanged<DateTime>? onMonthChanged;
+
+  /// Fires when the completed selection's validity changes, with the error
+  /// message (from [DateRangePickerConfig.labels]) or `null` when it becomes
+  /// valid. Useful for enabling an external submit button.
+  final ValueChanged<String?>? onError;
+
   /// Whether to render the Cancel/Apply row. Turn off when embedding the
   /// picker inline and driving it from [onChanged].
   final bool showActions;
@@ -61,9 +83,15 @@ class DateRangePickerView extends StatefulWidget {
     this.initialMonth,
     this.config = const DateRangePickerConfig(),
     this.theme,
+    this.controller,
     this.onChanged,
     this.onApply,
     this.onCancel,
+    this.onMonthChanged,
+    this.onError,
+    this.initialDates,
+    this.onDatesChanged,
+    this.onDatesApply,
     this.showActions = true,
   });
 
@@ -107,11 +135,17 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
 
   bool get _isBirthday => _config.mode == DateRangeMode.birthday;
   bool get _hasTime => _config.mode == DateRangeMode.dateTime;
+  bool get _isWeek => _config.mode == DateRangeMode.week;
+  bool get _isMulti => _config.mode == DateRangeMode.multiple;
   bool get _showYearGrid => _step == _PickerStep.years;
+
+  /// Individually-chosen days in [DateRangeMode.multiple].
+  PickedDates _multi = PickedDates.empty();
 
   @override
   void initState() {
     super.initState();
+    _multi = widget.initialDates ?? PickedDates.empty();
     _applyInitialSelection();
 
     final anchor =
@@ -137,6 +171,8 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
           ? initial.endTime
           : _config.initialEndTime;
     }
+
+    _attachController(widget.controller);
   }
 
   @override
@@ -145,6 +181,45 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
     if (widget.initialRange != oldWidget.initialRange) {
       setState(_applyInitialSelection);
     }
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller?.detach();
+      _attachController(widget.controller);
+    }
+  }
+
+  /// Installs this state's command hooks on [controller] so external callers
+  /// can read and drive the selection.
+  void _attachController(DateRangePickerController? controller) {
+    controller?.attach(
+      read: () => _currentRange,
+      write: _selectRange,
+      goToMonth: _goToMonth,
+      readMonth: () => _focusedMonth,
+    );
+  }
+
+  /// Applies an externally supplied selection (or clears it), clamping and
+  /// scrolling the calendar to match. Drives [DateRangePickerController].
+  void _selectRange(PickedDateRange? range) {
+    setState(() {
+      if (range == null) {
+        _start = null;
+        _end = null;
+      } else {
+        _start = clampDate(range.start, _config.minDate, _config.maxDate);
+        _end = _isSingle
+            ? _start
+            : clampDate(range.end, _config.minDate, _config.maxDate);
+        if (_hasTime && range.hasTime) {
+          _startTime = range.startTime;
+          _endTime = range.endTime;
+        }
+      }
+      _selectingEnd = false;
+      _hovered = null;
+    });
+    if (_start != null) _goToMonth(DateTime(_start!.year, _start!.month));
+    _notifyChanged();
   }
 
   void _applyInitialSelection() {
@@ -164,6 +239,7 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
 
   @override
   void dispose() {
+    widget.controller?.detach();
     _pageController.dispose();
     super.dispose();
   }
@@ -171,8 +247,23 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
   // ---------------------------------------------------------------- selection
 
   void _onDayTap(DateTime day) {
+    if (_isMulti) {
+      setState(() => _multi = _multi.toggle(day));
+      widget.onDatesChanged?.call(_multi);
+      return;
+    }
     setState(() {
-      if (_isSingle) {
+      if (_isWeek) {
+        // One tap picks the whole week, clamped into any configured bounds.
+        final weekStart = startOfWeek(day, _config.firstDayOfWeek);
+        _start = clampDate(weekStart, _config.minDate, _config.maxDate);
+        _end = clampDate(
+          addDays(weekStart, 6),
+          _config.minDate,
+          _config.maxDate,
+        );
+        _selectingEnd = false;
+      } else if (_isSingle) {
         _start = day;
         _end = day;
         _selectingEnd = false;
@@ -221,13 +312,26 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
       _end = null;
       _selectingEnd = false;
       _hovered = null;
+      _multi = PickedDates.empty();
     });
-    widget.onChanged?.call(null);
+    if (_isMulti) widget.onDatesChanged?.call(_multi);
+    _notifyChanged();
   }
+
+  /// The last validation message pushed to [onError], so it only fires on a
+  /// change rather than every rebuild.
+  String? _lastError;
 
   void _notifyChanged() {
     final range = _currentRange;
     widget.onChanged?.call(range);
+    widget.controller?.notify();
+
+    final error = range == null ? null : _validate(range);
+    if (error != _lastError) {
+      _lastError = error;
+      widget.onError?.call(error);
+    }
   }
 
   void _maybeAutoApply() {
@@ -263,6 +367,10 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
   }
 
   void _confirm() {
+    if (_isMulti) {
+      if (_multi.isNotEmpty) widget.onDatesApply?.call(_multi);
+      return;
+    }
     final range = _currentRange;
     if (range == null || _validate(range) != null) return;
     widget.onApply?.call(range);
@@ -285,6 +393,7 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
         _pageController.dispose();
         _pageController = PageController(initialPage: _initialPage);
       });
+      widget.onMonthChanged?.call(month);
       return;
     }
     _pageController.animateToPage(
@@ -338,7 +447,8 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (_config.showHeader) ...[
+              // The From/To header has no meaning for a set of loose days.
+              if (_config.showHeader && !_isMulti) ...[
                 _buildHeader(theme, labels, locale),
                 const SizedBox(height: 10),
                 Divider(height: 1, color: theme.borderColor),
@@ -534,8 +644,10 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
         physics: _config.enableSwipe
             ? const ClampingScrollPhysics()
             : const NeverScrollableScrollPhysics(),
-        onPageChanged: (page) =>
-            setState(() => _focusedMonth = _monthForPage(page)),
+        onPageChanged: (page) {
+          setState(() => _focusedMonth = _monthForPage(page));
+          widget.onMonthChanged?.call(_focusedMonth);
+        },
         itemBuilder: (context, page) {
           final month = _monthForPage(page);
           if (_resolvedVisibleMonths == 1) {
@@ -564,6 +676,7 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
       config: _config,
       theme: theme,
       selectingEnd: _selectingEnd && !_isSingle,
+      selectedDays: _isMulti ? _multi.dates.toSet() : null,
       onDayTap: _onDayTap,
       onDayHover: (day) {
         if (!_selectingEnd || _isSingle) return;
@@ -624,7 +737,9 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
     // so a disabled Apply button always comes with a reason.
     final error = range == null ? null : _validate(range);
     final String summary;
-    if (range == null) {
+    if (_isMulti) {
+      summary = _multi.isEmpty ? '' : labels.daysSelected(_multi.count);
+    } else if (range == null) {
       summary = '';
     } else if (_isBirthday) {
       summary = labels.age(range.ageInYears());
@@ -678,7 +793,9 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
     DateRangePickerLabels labels,
   ) {
     final range = _currentRange;
-    final canApply = range != null && _validate(range) == null;
+    final canApply = _isMulti
+        ? _multi.isNotEmpty
+        : range != null && _validate(range) == null;
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(theme.buttonRadius!),
     );
@@ -689,7 +806,9 @@ class _DateRangePickerViewState extends State<DateRangePickerView> {
         if (_config.showClearButton) ...[
           Expanded(
             child: TextButton(
-              onPressed: _start == null ? null : _clear,
+              onPressed: (_isMulti ? _multi.isEmpty : _start == null)
+                  ? null
+                  : _clear,
               style: TextButton.styleFrom(
                 foregroundColor: theme.mutedTextColor,
                 shape: shape,

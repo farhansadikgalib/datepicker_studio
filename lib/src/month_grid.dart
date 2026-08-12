@@ -8,6 +8,9 @@ import 'theme.dart';
 /// How a single day cell should be painted.
 enum _DayFill { none, range, edge }
 
+/// Fixed width of the ISO week-number column.
+const double _weekNumberWidth = 26;
+
 /// One month of day cells, including the weekday header row.
 ///
 /// This is a pure presentation widget: it holds no selection state and simply
@@ -30,6 +33,10 @@ class MonthGrid extends StatelessWidget {
   /// Whether the second endpoint is being chosen, which enables hover preview.
   final bool selectingEnd;
 
+  /// In [DateRangeMode.multiple], the individually-selected days. Each is drawn
+  /// as its own pill and the range band is suppressed. Null in every other mode.
+  final Set<DateTime>? selectedDays;
+
   const MonthGrid({
     super.key,
     required this.month,
@@ -41,13 +48,20 @@ class MonthGrid extends StatelessWidget {
     required this.onDayTap,
     required this.onDayHover,
     required this.selectingEnd,
+    this.selectedDays,
   });
 
-  /// Whether [day] can be selected given bounds, the predicate, and — while
-  /// choosing the second endpoint — [DateRangePickerConfig.maxRangeLength].
+  /// Whether [day] is one of the multi-select [selectedDays].
+  bool _isMultiSelected(DateTime day) =>
+      selectedDays != null && selectedDays!.any((d) => isSameDay(d, day));
+
+  /// Whether [day] can be selected given bounds, the predicate, disabled
+  /// ranges, and — while choosing the second endpoint —
+  /// [DateRangePickerConfig.maxRangeLength].
   bool _isSelectable(DateTime day) {
     if (!isWithin(day, config.minDate, config.maxDate)) return false;
     if (config.selectableDayPredicate?.call(day) == false) return false;
+    if (_isBlocked(day)) return false;
 
     final max = config.maxRangeLength;
     if (max != null &&
@@ -58,6 +72,16 @@ class MonthGrid extends StatelessWidget {
       return false;
     }
     return true;
+  }
+
+  /// Whether [day] falls inside any [DateRangePickerConfig.disabledRanges] span.
+  bool _isBlocked(DateTime day) {
+    final ranges = config.disabledRanges;
+    if (ranges == null) return false;
+    for (final range in ranges) {
+      if (isWithin(day, range.start, range.end)) return true;
+    }
+    return false;
   }
 
   /// The endpoints to paint, substituting [hovered] for the missing end so the
@@ -88,42 +112,88 @@ class MonthGrid extends StatelessWidget {
         const SizedBox(height: 4),
         for (var row = 0; row < rows; row++)
           Row(
-            children: List.generate(7, (col) {
-              final dayNum = row * 7 + col - leading + 1;
-              if (dayNum < 1 || dayNum > total) {
-                return Expanded(child: SizedBox(height: theme.dayExtent));
-              }
-
-              final day = DateTime(month.year, month.month, dayNum);
-              final isStart = isSameDay(day, rangeStart);
-              final isEnd = isSameDay(day, rangeEnd);
-              final inRange =
-                  rangeStart != null &&
-                  rangeEnd != null &&
-                  day.isAfter(dateOnly(rangeStart)) &&
-                  day.isBefore(dateOnly(rangeEnd));
-
-              return Expanded(
-                child: _DayCell(
-                  day: day,
-                  label: '$dayNum',
-                  fill: (isStart || isEnd)
-                      ? _DayFill.edge
-                      : inRange
-                      ? _DayFill.range
-                      : _DayFill.none,
-                  // Only bridge the gap to a neighbour that is itself filled,
-                  // so the connector never leaks past the range's edges.
-                  extendLeft: (inRange || (isEnd && !isStart)) && col != 0,
-                  extendRight: (inRange || (isStart && !isEnd)) && col != 6,
-                  isToday: config.highlightToday && isSameDay(day, today),
-                  enabled: _isSelectable(day),
+            children: [
+              if (config.showWeekNumbers)
+                _WeekNumberCell(
+                  // First day of this row, even when it spills into a
+                  // neighbouring month — enough to identify the ISO week.
+                  weekDate: addDays(first, row * 7 - leading),
                   theme: theme,
-                  onTap: () => onDayTap(day),
-                  onHover: onDayHover,
                 ),
-              );
-            }),
+              ...List.generate(7, (col) {
+                final dayNum = row * 7 + col - leading + 1;
+                if (dayNum < 1 || dayNum > total) {
+                  return Expanded(child: SizedBox(height: theme.dayExtent));
+                }
+
+                final day = DateTime(month.year, month.month, dayNum);
+                final multi = selectedDays != null;
+                final isStart = multi
+                    ? _isMultiSelected(day)
+                    : isSameDay(day, rangeStart);
+                final isEnd = multi
+                    ? _isMultiSelected(day)
+                    : isSameDay(day, rangeEnd);
+                // No connecting band between loose multi-select days.
+                final inRange =
+                    !multi &&
+                    rangeStart != null &&
+                    rangeEnd != null &&
+                    day.isAfter(dateOnly(rangeStart)) &&
+                    day.isBefore(dateOnly(rangeEnd));
+                final enabled = _isSelectable(day);
+
+                // A custom builder wins outright, but still gets the tap/hover
+                // wiring so callers only supply visuals.
+                final custom = config.dayBuilder?.call(
+                  context,
+                  DayCellDetails(
+                    day: day,
+                    isSelected: isStart || isEnd,
+                    isInRange: inRange,
+                    isToday: config.highlightToday && isSameDay(day, today),
+                    isDisabled: !enabled,
+                  ),
+                );
+                if (custom != null) {
+                  return Expanded(
+                    child: _CellGesture(
+                      day: day,
+                      enabled: enabled,
+                      height: theme.dayExtent!,
+                      onTap: onDayTap,
+                      onHover: onDayHover,
+                      child: custom,
+                    ),
+                  );
+                }
+
+                return Expanded(
+                  child: _DayCell(
+                    day: day,
+                    label: '$dayNum',
+                    fill: (isStart || isEnd)
+                        ? _DayFill.edge
+                        : inRange
+                        ? _DayFill.range
+                        : _DayFill.none,
+                    // Only bridge the gap to a neighbour that is itself filled,
+                    // so the connector never leaks past the range's edges.
+                    extendLeft: (inRange || (isEnd && !isStart)) && col != 0,
+                    extendRight: (inRange || (isStart && !isEnd)) && col != 6,
+                    isToday: config.highlightToday && isSameDay(day, today),
+                    enabled: enabled,
+                    highlight: (isStart || isEnd || inRange)
+                        ? null
+                        : config.dayHighlightColor?.call(day),
+                    eventCount: config.eventLoader?.call(day).length ?? 0,
+                    theme: theme,
+                    onTap: () => onDayTap(day),
+                    onHover: onDayHover,
+                  ),
+                );
+              }),
+            ],
           ),
       ],
     );
@@ -145,19 +215,79 @@ class _WeekdayHeader extends StatelessWidget {
     final monday = DateTime(2024, 1, 1);
 
     return Row(
-      children: List.generate(7, (i) {
-        final day = addDays(monday, (config.firstDayOfWeek - 1 + i) % 7);
-        return Expanded(
-          child: Center(
-            child: Text(
-              format.format(day),
-              style: theme.weekdayStyle,
-              maxLines: 1,
-              overflow: TextOverflow.clip,
+      children: [
+        if (config.showWeekNumbers) const SizedBox(width: _weekNumberWidth),
+        ...List.generate(7, (i) {
+          final day = addDays(monday, (config.firstDayOfWeek - 1 + i) % 7);
+          return Expanded(
+            child: Center(
+              child: Text(
+                format.format(day),
+                style: theme.weekdayStyle,
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+              ),
             ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+/// The leading ISO week-number label for a calendar row.
+class _WeekNumberCell extends StatelessWidget {
+  final DateTime weekDate;
+  final DateRangePickerTheme theme;
+
+  const _WeekNumberCell({required this.weekDate, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: _weekNumberWidth,
+      height: theme.dayExtent,
+      child: Center(
+        child: Text(
+          '${isoWeekNumber(weekDate)}',
+          style: theme.weekdayStyle?.copyWith(
+            color: theme.mutedTextColor?.withValues(alpha: 0.7),
           ),
-        );
-      }),
+        ),
+      ),
+    );
+  }
+}
+
+/// Wraps a caller-supplied day widget with the picker's tap and hover handling.
+class _CellGesture extends StatelessWidget {
+  final DateTime day;
+  final bool enabled;
+  final double height;
+  final ValueChanged<DateTime> onTap;
+  final ValueChanged<DateTime?> onHover;
+  final Widget child;
+
+  const _CellGesture({
+    required this.day,
+    required this.enabled,
+    required this.height,
+    required this.onTap,
+    required this.onHover,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      onEnter: (_) => enabled ? onHover(day) : null,
+      onExit: (_) => onHover(null),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: enabled ? () => onTap(day) : null,
+        child: SizedBox(height: height, child: child),
+      ),
     );
   }
 }
@@ -170,6 +300,13 @@ class _DayCell extends StatelessWidget {
   final bool extendRight;
   final bool isToday;
   final bool enabled;
+
+  /// Background tint for a highlighted (e.g. holiday) day, behind the number.
+  final Color? highlight;
+
+  /// Number of events on this day, shown as up to three dots.
+  final int eventCount;
+
   final DateRangePickerTheme theme;
   final VoidCallback onTap;
   final ValueChanged<DateTime?> onHover;
@@ -182,6 +319,8 @@ class _DayCell extends StatelessWidget {
     required this.extendRight,
     required this.isToday,
     required this.enabled,
+    required this.highlight,
+    required this.eventCount,
     required this.theme,
     required this.onTap,
     required this.onHover,
@@ -257,7 +396,9 @@ class _DayCell extends StatelessWidget {
                       height: height,
                       margin: const EdgeInsets.symmetric(vertical: 2),
                       decoration: BoxDecoration(
-                        color: isEdge ? theme.primaryColor : Colors.transparent,
+                        color: isEdge
+                            ? theme.primaryColor
+                            : (highlight ?? Colors.transparent),
                         borderRadius: BorderRadius.all(radius),
                         border: isToday && !isEdge
                             ? Border.all(color: theme.todayColor!, width: 1.4)
@@ -282,6 +423,16 @@ class _DayCell extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (eventCount > 0)
+                      Positioned(
+                        bottom: 4,
+                        child: _EventDots(
+                          count: eventCount,
+                          color: isEdge
+                              ? theme.onPrimaryColor!
+                              : theme.primaryColor!,
+                        ),
+                      ),
                   ],
                 );
               },
@@ -289,6 +440,31 @@ class _DayCell extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Up to three dots marking the number of events on a day.
+class _EventDots extends StatelessWidget {
+  final int count;
+  final Color color;
+
+  const _EventDots({required this.count, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final dots = count.clamp(1, 3);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < dots; i++)
+          Container(
+            width: 4,
+            height: 4,
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+      ],
     );
   }
 }

@@ -138,6 +138,38 @@ class DateRangePickerTheme {
     );
   }
 
+  /// A flat, low-chrome preset: gently squared day cells, chips, and buttons.
+  ///
+  /// Colours still resolve from the ambient [ThemeData]; pass [primary] to
+  /// override the accent.
+  factory DateRangePickerTheme.minimal({Color? primary}) =>
+      DateRangePickerTheme(
+        primaryColor: primary,
+        surfaceRadius: 12,
+        dayRadius: 8,
+        chipRadius: 8,
+        buttonRadius: 8,
+      );
+
+  /// A soft preset: fully-rounded pills everywhere and a large surface radius.
+  factory DateRangePickerTheme.rounded({Color? primary}) =>
+      DateRangePickerTheme(
+        primaryColor: primary,
+        surfaceRadius: 28,
+        dayRadius: 999,
+        chipRadius: 999,
+        buttonRadius: 999,
+      );
+
+  /// A dense preset for tight layouts: smaller day cells and buttons.
+  factory DateRangePickerTheme.compact({Color? primary}) =>
+      DateRangePickerTheme(
+        primaryColor: primary,
+        surfaceRadius: 14,
+        dayExtent: 34,
+        buttonPadding: 9,
+      );
+
   /// Fills every unset field from [context]'s [ColorScheme] and [TextTheme].
   DateRangePickerTheme resolve(BuildContext context) {
     final theme = Theme.of(context);

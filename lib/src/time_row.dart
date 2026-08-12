@@ -53,7 +53,7 @@ class TimeRow extends StatelessWidget {
     TimeOfDay current,
     ValueChanged<TimeOfDay> onChanged,
   ) async {
-    final picked = await showStudioTimePicker(
+    final picked = await DateRangePickerTime(
       context,
       initialTime: current,
       style: TimePickerStyle.fromTheme(theme),

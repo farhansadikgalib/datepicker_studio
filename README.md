@@ -1,12 +1,13 @@
 <p align="center">
-  <img src="assets/logo.png" alt="datepicker_studio logo" width="160" height="160">
+  <img src="assets/logo.png" alt="datepicker_studio logo" width="140" height="140">
 </p>
 
 <h1 align="center">datepicker_studio</h1>
 
 <p align="center">
-  A date picker for Flutter that matches your app's theme.<br>
-  Ranges, single days, birthdays, and date-times — as a sheet, dialog, inline calendar, or field.
+  A themeable date &amp; time picker toolkit for Flutter — range, single,
+  birthday, date-time, week &amp; multi-date, as a sheet, dialog, inline calendar,
+  field, or iOS modal.
 </p>
 
 <p align="center">
@@ -17,151 +18,160 @@
 
 ---
 
-- **4 modes** — range, single day, birthday, date + time
-- **4 ways to show it** — bottom sheet, dialog, inline, form field
-- **Themed by default** — follows your `ThemeData` in light and dark
-- **Rules that hold** — min/max dates, length limits, per-day filters
-- **Preset chips** — nine built in, or write your own
-- **One dependency** — `intl`, pulled in automatically
-
-## Quick start
+## Install
 
 ```yaml
 dependencies:
-  datepicker_studio: ^2.0.0
+  datepicker_studio: ^1.1.0
 ```
 
 ```dart
 import 'package:datepicker_studio/datepicker_studio.dart';
 
 final range = await DateRangePickerSheet(context);   // null if cancelled
-
-print('${range?.start} → ${range?.end}');   // 2026-08-05 → 2026-08-12
-print('${range?.days} days');               // 8 days
+print('${range?.start} → ${range?.end} · ${range?.days} days');
 ```
 
-That's the whole setup — preset chips, month swiping, a year picker, and your app's colours, out of the box.
+Presets, month swiping, a year picker, and your app's colours — out of the box.
 
-Three other ways to show it:
+## Show it
 
 ```dart
-showDateRangeDialog(context);                                    // tablet, desktop, web
-DateRangePickerView(showActions: false, onChanged: (r) => ...)   // inline
-DateRangeField(value: _range, onChanged: (r) => ...)             // form field
+DateRangePickerSheet(context);      // bottom sheet (phones)
+DateRangePickerPopup(context);      // centred dialog (tablet / desktop / web)
+DateRangePickerAdaptive(context);   // sheet or dialog, by screen width
+DateRangePickerCupertino(context);  // iOS-style modal with Cancel/Done
+
+DateRangePickerView(showActions: false, onChanged: (r) => …);  // inline widget
+DateRangeField(value: _range, onChanged: (r) => …);            // tap-to-open field
+DateRangeFormField(validator: (r) => r == null ? 'Required' : null);  // in a Form
 ```
 
-Need just a time? The same custom wheel picker is available on its own:
+Both fields are fully styleable — pass any `decoration`, plus `borderRadius` and `textStyle`:
 
 ```dart
-final time = await showStudioTimePicker(
-  context,
-  initialTime: TimeOfDay.now(),
-  style: TimePickerStyle.from(accent: Colors.indigo),   // colours are yours
-  minuteInterval: 5,
+DateRangeField(
+  value: _range, onChanged: (r) => …,
+  borderRadius: BorderRadius.circular(18),
+  textStyle: const TextStyle(fontWeight: FontWeight.w600),
+  decoration: const InputDecoration(labelText: 'Period', filled: true),
 );
+```
+
+Drive the inline picker imperatively:
+
+```dart
+final c = DateRangePickerController();
+DateRangePickerView(controller: c, onChanged: (r) => …);
+c.setRange(DateRangePreset.lastDays(7).build(DateTime.now()));
+c.goToMonth(DateTime(2027, 1));
+c.clear();
 ```
 
 ## Modes
 
-Set with `config: DateRangePickerConfig(mode: DateRangeMode.birthday)`.
+`config: DateRangePickerConfig(mode: DateRangeMode.birthday)`
 
 | Mode | Gives you |
 |---|---|
-| `range` | A span. The default. |
+| `range` | A span (default) |
 | `single` | One day |
-| `birthday` | Opens on the year grid, blocks future dates, adds `range.ageInYears()` |
-| `dateTime` | A time on each end — `range.start` → `2026-08-05 09:30`, `range.duration` → `8:15:00` |
+| `birthday` | Year → month → day, blocks the future, `range.ageInYears()` |
+| `dateTime` | A time on each end → `2026-08-05 09:30` |
+| `week` | One tap selects the whole week |
+| `multiple` | Toggle loose days → `PickedDates` |
 
-## Options
+## Standalone pickers
+
+Each opens on its own and returns its own value (`null` if cancelled):
 
 ```dart
-DateRangePickerConfig(
-  minDate: DateTime.now().subtract(const Duration(days: 365)),
-  maxDate: DateTime.now(),
-  maxRangeLength: 30,
-  selectableDayPredicate: (day) =>          // no weekends
-      day.weekday != DateTime.saturday && day.weekday != DateTime.sunday,
-)
+final time  = await DateRangePickerTime(context, initialTime: TimeOfDay.now()); // TimeOfDay?
+final span  = await DateRangePickerTimeRange(context);                          // ({start, end})?
+final dur   = await DateRangePickerDuration(context);                           // Duration?
+final month = await DateRangePickerMonth(context);                             // DateTime?
+final year  = await DateRangePickerYear(context);                              // int?
+final dates = await DateRangePickerMultiple(context);                          // PickedDates?
+
+if (time != null) print(time.format(context));   // 9:00 AM
 ```
+
+Style the time-based pickers with `TimePickerStyle.from(accent: Colors.indigo)` (also `.rounded()` / `.minimal()` / `.compact()`), and set `minuteInterval` / `use24HourFormat` as needed.
+
+## Options — `DateRangePickerConfig`
 
 | Option | Does |
 |---|---|
-| `minDate` / `maxDate` | Bounds; outside days are greyed out |
+| `mode` | Selection mode (above). Default `range` |
+| `minDate` / `maxDate` | Selectable bounds; outside days greyed |
 | `minRangeLength` / `maxRangeLength` | Length limits, enforced while picking |
-| `selectableDayPredicate` | Per-day filter — weekends, holidays, booked dates |
-| `autoApply` | Close as soon as they've chosen |
-| `visibleMonths` | Months side by side; collapses on narrow screens |
-| `firstDayOfWeek` | First calendar column |
-| `minuteInterval` | Time steps in `dateTime` mode — `15` gives `:00 :15 :30 :45` |
+| `selectableDayPredicate` | Per-day filter (weekends, holidays, booked) |
+| `disabledRanges` | Block whole `DateTimeRange`s |
+| `firstDayOfWeek` | First column. Default Monday |
+| `visibleMonths` | Months side by side; collapses when narrow |
+| `autoApply` | Confirm on complete selection |
 | `presets` | Chip row; `[]` hides it |
-| `showTodayPreset` / `showLast7DaysPreset` / … | Hide individual default chips |
-| `locale` / `labels` | Language for names and buttons |
-| `enableYearPicker` / `enableSwipe` | Tap the title for years; swipe to page |
+| `showTodayPreset` / `showThisWeekPreset` / `showThisMonthPreset` / `showLast7DaysPreset` / `showLast30DaysPreset` | Toggle each default chip |
 | `showHeader` / `showDayCount` / `showClearButton` | Chrome toggles |
+| `highlightToday` | Ring around today |
+| `enableYearPicker` / `enableSwipe` | Tap title for years; swipe to page |
+| `showWeekNumbers` | ISO-8601 week column |
+| `dayBuilder` | Custom day cell (`DayCellDetails`) |
+| `eventLoader` | Events per day, drawn as dots |
+| `dayHighlightColor` | Per-day background tint |
+| `firstYear` / `lastYear` | Year-grid bounds |
+| `headerDateFormat` / `monthTitleFormat` | `intl` date skeletons |
+| `minuteInterval` | Time steps in `dateTime` — `15` → `:00 :15 :30 :45` |
+| `use24HourFormat` | Force a 24-hour clock |
+| `initialStartTime` / `initialEndTime` | Default endpoint times |
+| `locale` | Names and formats |
+| `labels` | Every UI string (Localisation) |
 
 ## Presets
 
-Today, This Week, This Month, Last 7 Days, and Last 30 Days show by default — hide one with `showLast7DaysPreset: false`, or bring your own:
+Today, This Week, This Month, Last 7 & Last 30 Days by default — hide one with `showLast7DaysPreset: false`, or bring your own:
 
 ```dart
 presets: [
   DateRangePreset.lastDays(90),
-  DateRangePreset(
-    label: 'Q1',
-    build: (now) => PickedDateRange(DateTime(now.year), DateTime(now.year, 3, 31)),
-  ),
+  DateRangePreset(label: 'Q1', build: (now) =>
+      PickedDateRange(DateTime(now.year), DateTime(now.year, 3, 31))),
 ]
 ```
 
-Built in: `today`, `yesterday`, `thisWeek`, `lastWeek`, `thisMonth`, `lastMonth`, `thisYear`, `lastDays(n)`, `nextDays(n)`. Anything outside your bounds is trimmed to fit.
+Built in: `today`, `yesterday`, `thisWeek`, `lastWeek`, `thisMonth`, `lastMonth`, `thisYear`, `lastDays(n)`, `nextDays(n)` — clamped to your bounds.
 
 ## Theming
 
-Skip the theme and it follows your app, light or dark.
+Skip it and it follows your app, light or dark. 12 colours, 7 radii, 6 text styles.
 
 ```dart
 theme: DateRangePickerTheme.from(primary: Colors.teal)   // one colour
-
-theme: const DateRangePickerTheme(                       // or full control
-  primaryColor: Color(0xFF4F46E5),   // selected days, Apply button
-  rangeColor: Color(0x1A4F46E5),     // the bar between them
-  todayColor: Color(0xFFFBBF24),     // ring around today
-  dayRadius: 10,                     // square-ish days
-  buttonRadius: 26,                  // pill buttons
-)
+theme: DateRangePickerTheme.rounded()                    // or .minimal() / .compact()
 ```
 
-12 colour slots, 7 radii, and 6 text styles in all — see `DateRangePickerTheme`.
+`cupertinoDateRangePickerTheme()` mirrors the iOS palette for `DateRangePickerCupertino`.
 
 ## Localisation
 
-Month and weekday names follow the device locale. Every UI string is a plain field you can override:
+Names follow the device locale; every string is overridable — use a built-in bundle (`en es fr de pt it tr ar`) or set fields:
 
 ```dart
-DateRangePickerConfig(
-  locale: 'en',
-  labels: DateRangePickerLabels(
-    from: 'From',        // defaults shown — pass any language
-    to: 'To',
-    apply: 'Apply',
-    cancel: 'Cancel',
-    daysSelected: (d) => d == 1 ? '1 day selected' : '$d days selected',
-  ),
-)
+labels: DateRangePickerLabels.forLocale('es')
+labels: const DateRangePickerLabels(from: 'From', to: 'To', apply: 'Apply')
 ```
 
 ## Result
 
 ```dart
-range.start / range.end    // first and last day; end is never before start
-range.days                 // 8 — counts both ends, so one day is 1
-range.duration             // time between the ends
-range.contains(someDay)
-range.toList()             // every day in the range
-range.toDateTimeRange()    // Flutter's built-in type
+range.start / range.end     // ordered; end is never before start
+range.days                  // inclusive count (one day = 1)
+range.duration;             range.contains(day);
+range.toList();             range.toDateTimeRange();   range.toJson();
+range.hasTime;  range.startTime;  range.endTime;  range.ageInYears();  range.isSingleDay;
 ```
 
-Also: `hasTime`, `startTime`, `endTime`, `ageInYears()`, `isSingleDay`.
+Multi-date returns `PickedDates` (`dates`, `count`, `contains`, `toggle`, `toJson`).
 
 ---
 

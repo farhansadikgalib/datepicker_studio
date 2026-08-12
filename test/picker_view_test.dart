@@ -726,7 +726,7 @@ void main() {
             body: Builder(
               builder: (context) => ElevatedButton(
                 onPressed: () async {
-                  result = await showDateRangeDialog(
+                  result = await DateRangePickerPopup(
                     context,
                     initialMonth: DateTime(2026, 8),
                   );

@@ -80,3 +80,16 @@ DateTime startOfWeek(DateTime date, int firstDayOfWeek) {
   final delta = (date.weekday - firstDayOfWeek + 7) % 7;
   return addDays(dateOnly(date), -delta);
 }
+
+/// The ISO-8601 week number (1–53) of [date].
+///
+/// Week 1 is the week containing the year's first Thursday, so the number is
+/// derived from the Thursday of [date]'s week — independent of the calendar's
+/// configured first day.
+int isoWeekNumber(DateTime date) {
+  final d = DateTime.utc(date.year, date.month, date.day);
+  // Thursday of this ISO week fixes both the week-year and the week index.
+  final thursday = d.add(Duration(days: 4 - d.weekday));
+  final firstJan = DateTime.utc(thursday.year, 1, 1);
+  return (thursday.difference(firstJan).inDays / 7).floor() + 1;
+}

@@ -62,6 +62,27 @@ class PickedDateRange {
   static PickedDateRange fromDateTimeRange(DateTimeRange range) =>
       PickedDateRange(range.start, range.end);
 
+  /// A JSON-friendly map: ISO-8601 [start] and [end] plus the [hasTime] flag.
+  ///
+  /// Round-trips losslessly through [fromJson], so a selection can be persisted
+  /// to preferences, a database, or an API payload.
+  Map<String, dynamic> toJson() => {
+    'start': start.toIso8601String(),
+    'end': end.toIso8601String(),
+    'hasTime': hasTime,
+  };
+
+  /// Rebuilds a range from the output of [toJson].
+  ///
+  /// Missing or malformed fields throw [FormatException] via [DateTime.parse].
+  static PickedDateRange fromJson(Map<String, dynamic> json) {
+    final start = DateTime.parse(json['start'] as String);
+    final end = DateTime.parse(json['end'] as String);
+    return (json['hasTime'] as bool? ?? false)
+        ? PickedDateRange.withTime(start, end)
+        : PickedDateRange(start, end);
+  }
+
   /// Elapsed time between the endpoints.
   ///
   /// Only meaningful when [hasTime] is set; for a day-precision range this is
@@ -133,6 +154,72 @@ class PickedDateRange {
   }
 }
 
+/// A set of individually-chosen calendar days, produced by
+/// [DateRangeMode.multiple].
+///
+/// Days are normalised to midnight, de-duplicated, and kept sorted ascending.
+@immutable
+class PickedDates {
+  /// The selected days, sorted ascending, unique, at day precision.
+  final List<DateTime> dates;
+
+  /// Builds a set from any iterable of days, normalising and sorting them.
+  PickedDates(Iterable<DateTime> dates)
+    : dates = List.unmodifiable(
+        (dates.map(dateOnly).toSet().toList())..sort((a, b) => a.compareTo(b)),
+      );
+
+  /// An empty selection.
+  factory PickedDates.empty() => PickedDates(const []);
+
+  /// Number of selected days.
+  int get count => dates.length;
+
+  /// Whether nothing is selected.
+  bool get isEmpty => dates.isEmpty;
+
+  /// Whether nothing-but-something is selected.
+  bool get isNotEmpty => dates.isNotEmpty;
+
+  /// Whether [day] is in the set, at day precision.
+  bool contains(DateTime day) => dates.any((d) => isSameDay(d, day));
+
+  /// Returns a copy with [day] added if absent, or removed if present.
+  PickedDates toggle(DateTime day) {
+    final norm = dateOnly(day);
+    final next = dates.where((d) => !isSameDay(d, norm)).toList();
+    if (next.length == dates.length) next.add(norm);
+    return PickedDates(next);
+  }
+
+  /// A JSON map of ISO-8601 day strings, round-tripping through [fromJson].
+  Map<String, dynamic> toJson() => {
+    'dates': [for (final d in dates) d.toIso8601String()],
+  };
+
+  /// Rebuilds a selection from the output of [toJson].
+  static PickedDates fromJson(Map<String, dynamic> json) => PickedDates(
+    (json['dates'] as List).map((s) => DateTime.parse(s as String)),
+  );
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! PickedDates || other.dates.length != dates.length) {
+      return false;
+    }
+    for (var i = 0; i < dates.length; i++) {
+      if (!isSameDay(dates[i], other.dates[i])) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(dates.map(dateOnly));
+
+  @override
+  String toString() => 'PickedDates(${dates.length} days)';
+}
+
 /// What the picker lets the user select.
 enum DateRangeMode {
   /// Two endpoints forming a span. The default.
@@ -155,6 +242,20 @@ enum DateRangeMode {
   /// the hours and minutes. The result is a [PickedDateRange] built with
   /// [PickedDateRange.withTime], so its endpoints are not midnight-normalised.
   dateTime,
+
+  /// A whole calendar week.
+  ///
+  /// A single tap selects the seven days of the week containing it, starting at
+  /// [DateRangePickerConfig.firstDayOfWeek]. Produces an ordinary seven-day
+  /// [PickedDateRange].
+  week,
+
+  /// Any number of individually-chosen days.
+  ///
+  /// Each tap toggles a day. The result is a [PickedDates] delivered through the
+  /// view's `onDatesChanged`/`onDatesApply` callbacks or `DateRangePickerMultiple`,
+  /// rather than a [PickedDateRange].
+  multiple,
 }
 
 /// A one-tap shortcut shown above the action buttons, such as "Last 7 Days".
@@ -348,6 +449,182 @@ class DateRangePickerLabels {
 
   static String _defaultTooShort(int min) =>
       'Select at least ${min == 1 ? '1 day' : '$min days'}';
+
+  /// A translated label bundle for [locale], falling back to English for any
+  /// language not yet bundled.
+  ///
+  /// [locale] may be a full tag like `'pt_BR'`; only the language subtag is
+  /// used. Bundled languages: en, es, fr, de, pt, it, tr, ar. Override any
+  /// individual string with [copyWith].
+  static DateRangePickerLabels forLocale(String locale) {
+    final code = locale.split(RegExp('[_-]')).first.toLowerCase();
+    switch (code) {
+      case 'es':
+        return DateRangePickerLabels(
+          from: 'Desde',
+          to: 'Hasta',
+          cancel: 'Cancelar',
+          apply: 'Aplicar',
+          clear: 'Borrar',
+          selectYear: 'Seleccionar año',
+          selectMonth: 'Seleccionar mes',
+          startTime: 'Hora de inicio',
+          endTime: 'Hora de fin',
+          age: (y) => y == 1 ? '1 año' : '$y años',
+          daysSelected: (d) =>
+              d == 1 ? '1 día seleccionado' : '$d días seleccionados',
+          rangeTooLong: (m) =>
+              'Selecciona como máximo ${m == 1 ? '1 día' : '$m días'}',
+          rangeTooShort: (m) =>
+              'Selecciona al menos ${m == 1 ? '1 día' : '$m días'}',
+        );
+      case 'fr':
+        return DateRangePickerLabels(
+          from: 'Du',
+          to: 'Au',
+          cancel: 'Annuler',
+          apply: 'Appliquer',
+          clear: 'Effacer',
+          selectYear: 'Choisir l\'année',
+          selectMonth: 'Choisir le mois',
+          startTime: 'Heure de début',
+          endTime: 'Heure de fin',
+          age: (y) => y <= 1 ? '$y an' : '$y ans',
+          daysSelected: (d) =>
+              d <= 1 ? '$d jour sélectionné' : '$d jours sélectionnés',
+          rangeTooLong: (m) =>
+              'Sélectionnez au maximum ${m <= 1 ? '$m jour' : '$m jours'}',
+          rangeTooShort: (m) =>
+              'Sélectionnez au moins ${m <= 1 ? '$m jour' : '$m jours'}',
+        );
+      case 'de':
+        return DateRangePickerLabels(
+          from: 'Von',
+          to: 'Bis',
+          cancel: 'Abbrechen',
+          apply: 'Übernehmen',
+          clear: 'Löschen',
+          selectYear: 'Jahr wählen',
+          selectMonth: 'Monat wählen',
+          startTime: 'Startzeit',
+          endTime: 'Endzeit',
+          age: (y) => y == 1 ? '1 Jahr' : '$y Jahre',
+          daysSelected: (d) =>
+              d == 1 ? '1 Tag ausgewählt' : '$d Tage ausgewählt',
+          rangeTooLong: (m) =>
+              'Höchstens ${m == 1 ? '1 Tag' : '$m Tage'} auswählen',
+          rangeTooShort: (m) =>
+              'Mindestens ${m == 1 ? '1 Tag' : '$m Tage'} auswählen',
+        );
+      case 'pt':
+        return DateRangePickerLabels(
+          from: 'De',
+          to: 'Até',
+          cancel: 'Cancelar',
+          apply: 'Aplicar',
+          clear: 'Limpar',
+          selectYear: 'Selecionar ano',
+          selectMonth: 'Selecionar mês',
+          startTime: 'Hora de início',
+          endTime: 'Hora de término',
+          age: (y) => y == 1 ? '1 ano' : '$y anos',
+          daysSelected: (d) =>
+              d == 1 ? '1 dia selecionado' : '$d dias selecionados',
+          rangeTooLong: (m) =>
+              'Selecione no máximo ${m == 1 ? '1 dia' : '$m dias'}',
+          rangeTooShort: (m) =>
+              'Selecione pelo menos ${m == 1 ? '1 dia' : '$m dias'}',
+        );
+      case 'it':
+        return DateRangePickerLabels(
+          from: 'Da',
+          to: 'A',
+          cancel: 'Annulla',
+          apply: 'Applica',
+          clear: 'Cancella',
+          selectYear: 'Seleziona anno',
+          selectMonth: 'Seleziona mese',
+          startTime: 'Ora di inizio',
+          endTime: 'Ora di fine',
+          age: (y) => y == 1 ? '1 anno' : '$y anni',
+          daysSelected: (d) =>
+              d == 1 ? '1 giorno selezionato' : '$d giorni selezionati',
+          rangeTooLong: (m) =>
+              'Seleziona al massimo ${m == 1 ? '1 giorno' : '$m giorni'}',
+          rangeTooShort: (m) =>
+              'Seleziona almeno ${m == 1 ? '1 giorno' : '$m giorni'}',
+        );
+      case 'tr':
+        return DateRangePickerLabels(
+          from: 'Başlangıç',
+          to: 'Bitiş',
+          cancel: 'İptal',
+          apply: 'Uygula',
+          clear: 'Temizle',
+          selectYear: 'Yıl seç',
+          selectMonth: 'Ay seç',
+          startTime: 'Başlangıç saati',
+          endTime: 'Bitiş saati',
+          age: (y) => '$y yaşında',
+          daysSelected: (d) => '$d gün seçildi',
+          rangeTooLong: (m) => 'En fazla $m gün seçin',
+          rangeTooShort: (m) => 'En az $m gün seçin',
+        );
+      case 'ar':
+        return DateRangePickerLabels(
+          from: 'من',
+          to: 'إلى',
+          cancel: 'إلغاء',
+          apply: 'تطبيق',
+          clear: 'مسح',
+          selectYear: 'اختر السنة',
+          selectMonth: 'اختر الشهر',
+          startTime: 'وقت البدء',
+          endTime: 'وقت الانتهاء',
+          age: (y) => 'العمر $y',
+          daysSelected: (d) => 'تم تحديد $d يوم',
+          rangeTooLong: (m) => 'اختر $m يوم كحد أقصى',
+          rangeTooShort: (m) => 'اختر $m يوم على الأقل',
+        );
+      default:
+        return const DateRangePickerLabels();
+    }
+  }
+
+  /// Returns a copy with the given fields replaced.
+  DateRangePickerLabels copyWith({
+    String? from,
+    String? to,
+    String? empty,
+    String? cancel,
+    String? apply,
+    String? clear,
+    String? selectYear,
+    String? selectMonth,
+    String? startTime,
+    String? endTime,
+    String Function(int years)? age,
+    String Function(int days)? daysSelected,
+    String Function(int maxDays)? rangeTooLong,
+    String Function(int minDays)? rangeTooShort,
+  }) {
+    return DateRangePickerLabels(
+      from: from ?? this.from,
+      to: to ?? this.to,
+      empty: empty ?? this.empty,
+      cancel: cancel ?? this.cancel,
+      apply: apply ?? this.apply,
+      clear: clear ?? this.clear,
+      selectYear: selectYear ?? this.selectYear,
+      selectMonth: selectMonth ?? this.selectMonth,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      age: age ?? this.age,
+      daysSelected: daysSelected ?? this.daysSelected,
+      rangeTooLong: rangeTooLong ?? this.rangeTooLong,
+      rangeTooShort: rangeTooShort ?? this.rangeTooShort,
+    );
+  }
 }
 
 /// Behavioural configuration shared by every entry point.
@@ -470,6 +747,32 @@ class DateRangePickerConfig {
   /// Time applied to the end endpoint before the user picks one.
   final TimeOfDay initialEndTime;
 
+  /// Overrides how a day cell is rendered.
+  ///
+  /// Return a widget to replace the default cell entirely, or `null` to fall
+  /// back to the built-in rendering for that day — handy for decorating only a
+  /// few days. The [DayCellDetails] argument reports the day's selection and
+  /// availability state so the replacement can match it.
+  final Widget? Function(BuildContext context, DayCellDetails details)?
+  dayBuilder;
+
+  /// Supplies the events for a day, drawn as up to three dots beneath the
+  /// number. Keep it cheap: it runs once per visible cell per build.
+  final List<Object> Function(DateTime day)? eventLoader;
+
+  /// Spans whose days cannot be selected, e.g. already-booked periods.
+  ///
+  /// A convenience layered on top of [selectableDayPredicate]; a day inside any
+  /// of these ranges is disabled regardless of the predicate.
+  final List<DateTimeRange>? disabledRanges;
+
+  /// Supplies a background tint for a day — holidays, sale days, deadlines.
+  /// Return `null` to leave a day at its default background.
+  final Color? Function(DateTime day)? dayHighlightColor;
+
+  /// Whether to show an ISO-8601 week-number column down the left of the grid.
+  final bool showWeekNumbers;
+
   const DateRangePickerConfig({
     this.mode = DateRangeMode.range,
     this.minDate,
@@ -502,6 +805,11 @@ class DateRangePickerConfig {
     this.use24HourFormat,
     this.initialStartTime = const TimeOfDay(hour: 9, minute: 0),
     this.initialEndTime = const TimeOfDay(hour: 17, minute: 0),
+    this.dayBuilder,
+    this.eventLoader,
+    this.disabledRanges,
+    this.dayHighlightColor,
+    this.showWeekNumbers = false,
   }) : assert(
          firstDayOfWeek >= DateTime.monday && firstDayOfWeek <= DateTime.sunday,
          'firstDayOfWeek must be a DateTime weekday constant (1-7)',
@@ -561,6 +869,11 @@ class DateRangePickerConfig {
     bool? use24HourFormat,
     TimeOfDay? initialStartTime,
     TimeOfDay? initialEndTime,
+    Widget? Function(BuildContext context, DayCellDetails details)? dayBuilder,
+    List<Object> Function(DateTime day)? eventLoader,
+    List<DateTimeRange>? disabledRanges,
+    Color? Function(DateTime day)? dayHighlightColor,
+    bool? showWeekNumbers,
   }) {
     return DateRangePickerConfig(
       mode: mode ?? this.mode,
@@ -595,6 +908,41 @@ class DateRangePickerConfig {
       use24HourFormat: use24HourFormat ?? this.use24HourFormat,
       initialStartTime: initialStartTime ?? this.initialStartTime,
       initialEndTime: initialEndTime ?? this.initialEndTime,
+      dayBuilder: dayBuilder ?? this.dayBuilder,
+      eventLoader: eventLoader ?? this.eventLoader,
+      disabledRanges: disabledRanges ?? this.disabledRanges,
+      dayHighlightColor: dayHighlightColor ?? this.dayHighlightColor,
+      showWeekNumbers: showWeekNumbers ?? this.showWeekNumbers,
     );
   }
+}
+
+/// The state of a day cell, passed to [DateRangePickerConfig.dayBuilder] so a
+/// custom cell can match the picker's own selection visuals.
+@immutable
+class DayCellDetails {
+  /// The day this cell represents (midnight local time).
+  final DateTime day;
+
+  /// Whether the day is a selected endpoint (range start/end, or the single
+  /// day in single/birthday mode).
+  final bool isSelected;
+
+  /// Whether the day lies strictly between the two selected endpoints.
+  final bool isInRange;
+
+  /// Whether the day is today.
+  final bool isToday;
+
+  /// Whether the day is selectable given bounds, the predicate, disabled
+  /// ranges, and any range-length limit.
+  final bool isDisabled;
+
+  const DayCellDetails({
+    required this.day,
+    required this.isSelected,
+    required this.isInRange,
+    required this.isToday,
+    required this.isDisabled,
+  });
 }

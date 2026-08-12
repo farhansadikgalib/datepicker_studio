@@ -58,8 +58,27 @@ void main() {
     DateRangePreset.lastDays(7);
     DateRangePreset.nextDays(7);
 
+    // "Drive it programmatically"
+    final controller = DateRangePickerController();
+    DateRangePickerView(controller: controller, onChanged: (r) => _range = r);
+    controller.setRange(DateRangePreset.lastDays(7).build(DateTime.now()));
+    controller.goToMonth(DateTime(2027, 1));
+    controller.clear();
+    controller.dispose();
+    DateRangeFormField(validator: (r) => r == null ? 'Pick a period' : null);
+
+    // "Persist a selection"
+    final persisted = PickedDateRange(
+      DateTime(2026, 8, 5),
+      DateTime(2026, 8, 12),
+    );
+    PickedDateRange.fromJson(persisted.toJson());
+
     // "Make it yours"
     DateRangePickerTheme.from(primary: Colors.teal);
+    DateRangePickerTheme.rounded();
+    DateRangePickerTheme.minimal();
+    DateRangePickerTheme.compact();
     const DateRangePickerTheme(
       primaryColor: Color(0xFF4F46E5),
       rangeColor: Color(0x1A4F46E5),
