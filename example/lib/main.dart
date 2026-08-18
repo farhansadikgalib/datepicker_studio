@@ -216,8 +216,9 @@ class _DemoPageState extends State<DemoPage> {
                   initialTime: const TimeOfDay(hour: 9, minute: 0),
                   minuteInterval: 5,
                 );
-                if (t != null && context.mounted)
+                if (t != null && context.mounted) {
                   _snack('Time · ${t.format(context)}');
+                }
               }),
               _Pill(Icons.timelapse_rounded, 'Duration', () async {
                 final d = await DateRangePickerDuration(
@@ -225,10 +226,11 @@ class _DemoPageState extends State<DemoPage> {
                   initialDuration: const Duration(hours: 1),
                   minuteInterval: 5,
                 );
-                if (d != null)
+                if (d != null) {
                   _snack(
                     'Duration · ${d.inHours}h ${d.inMinutes.remainder(60)}m',
                   );
+                }
               }),
               _Pill(Icons.calendar_view_month_rounded, 'Month', () async {
                 final m = await DateRangePickerMonth(context);

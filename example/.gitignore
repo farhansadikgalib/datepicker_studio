@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Raw capture frames from the screenshot driver (regenerable)
+screenshots/

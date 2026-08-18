@@ -22,6 +22,32 @@ dev_dependencies:
 screenshots:
   - description: datepicker_studio logo
     path: assets/logo.png
+  - description: The demo app — one calendar engine across sheets, dialogs, modes and pickers
+    path: assets/screenshots/overview.png
+  - description: Range bottom sheet — tap two days to select a span, then apply
+    path: assets/screenshots/clips/range.gif
+  - description: Dialog presentation selecting a date range
+    path: assets/screenshots/clips/dialog.gif
+  - description: Cupertino iOS-style modal with a Cancel/Done toolbar
+    path: assets/screenshots/clips/cupertino.gif
+  - description: Single date mode auto-applies on the first tap
+    path: assets/screenshots/clips/single.gif
+  - description: Birthday mode drills down from year to month to day
+    path: assets/screenshots/clips/birthday.gif
+  - description: Date + time mode carries a time on each endpoint
+    path: assets/screenshots/clips/datetime.gif
+  - description: Multiple dates mode toggles any number of loose days
+    path: assets/screenshots/clips/multiple.gif
+  - description: Standalone wheel time picker
+    path: assets/screenshots/clips/time.gif
+  - description: Standalone duration picker
+    path: assets/screenshots/clips/duration.gif
+  - description: Standalone month picker
+    path: assets/screenshots/clips/month.gif
+  - description: Standalone year picker
+    path: assets/screenshots/clips/year.gif
+  - description: Inline calendar with event dots, ISO week numbers and weekend tints
+    path: assets/screenshots/inline.png
 
 topics:
   - date
